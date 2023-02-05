@@ -805,9 +805,9 @@ void TaskMeasure(void *argument)
 			{
 				(uint8_t)std::get<0>(MotorList[0])->GetState(),
 				(uint8_t)std::get<0>(MotorList[1])->GetState(),
-				(uint8_t)std::get<0>(MotorList[2])->GetState(),
-				(uint8_t)std::get<0>(MotorList[3])->GetState(),
-				(uint8_t)std::get<0>(MotorList[4])->GetState()
+				0,//(uint8_t)std::get<0>(MotorList[2])->GetState(),
+				0,//(uint8_t)std::get<0>(MotorList[3])->GetState(),
+				0,//(uint8_t)std::get<0>(MotorList[4])->GetState()
 
 			},
 			{
