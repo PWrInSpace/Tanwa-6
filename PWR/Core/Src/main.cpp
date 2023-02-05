@@ -33,7 +33,7 @@
 struct TxStruct{
     bool tick;
     uint8_t lastDoneCommandNum;
-    uint8_t MotorState[5];
+    uint8_t MotorState[4];
     int16_t adcValue[2];
 };
 
@@ -42,7 +42,7 @@ struct RxStruct{
     uint16_t CommandArgument;
 };
 
-TxStruct txStruct = {0,0,{0,0,0,0,0},{0,0}};
+TxStruct txStruct = {0,0,{0,0,0,0},{0,0}};
 RxStruct rxStruct = {0,0};
 const uint16_t rxBufferLenght = 10;
 auto rxQueue = xQueueCreate(rxBufferLenght, sizeof(rxStruct));
@@ -158,11 +158,10 @@ int main(void)
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(50);
-  MotorList.push_back({new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim4, TIM_CHANNEL_4), ValveStateIDK});
-  MotorList.push_back({new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim4, TIM_CHANNEL_3), ValveStateIDK});
+  MotorList.push_back({new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
+  MotorList.push_back({new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2), ValveStateIDK});
   //MotorList.push_back({new Motor(M3Dir_GPIO_Port, M3Dir_Pin, &htim1, TIM_CHANNEL_2), ValveStateIDK});
   //MotorList.push_back({new Motor(M4Dir_GPIO_Port, M4Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
-  //MotorList.push_back({new Motor(M5Dir_GPIO_Port, M5Dir_Pin, &htim3, TIM_CHANNEL_3), ValveStateIDK});
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -720,14 +719,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //ToDo change to loop
 		if (HAL_GPIO_ReadPin(GPIOC, M4OpenLimitSwitchEXT_Pin) == 0)
 			std::get<0>(MotorList[3])->SetState(ValveStateOpen);
 	}
-	else if(std::get<1>(MotorList[4]) == ValveStateOpen && GPIO_Pin == M5OpenLimitSwitchEXT_Pin){
-		if (HAL_GPIO_ReadPin(GPIOC, M5OpenLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[4])->SetState(ValveStateOpen);
-	}
-	else if(std::get<1>(MotorList[4]) == ValveStateClose && GPIO_Pin == M5CloseLimitSwitchEXT_Pin){
-		if (HAL_GPIO_ReadPin(GPIOC, M5CloseLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[4])->SetState(ValveStateClose);
-	}
 	*/
 }
 
@@ -806,9 +797,7 @@ void TaskMeasure(void *argument)
 				(uint8_t)std::get<0>(MotorList[0])->GetState(),
 				(uint8_t)std::get<0>(MotorList[1])->GetState(),
 				0,//(uint8_t)std::get<0>(MotorList[2])->GetState(),
-				0,//(uint8_t)std::get<0>(MotorList[3])->GetState(),
-				0,//(uint8_t)std::get<0>(MotorList[4])->GetState()
-
+				0//(uint8_t)std::get<0>(MotorList[3])->GetState()
 			},
 			{
 				ADCData[0],	//Pressure
