@@ -22,7 +22,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <DoubleMAX14870.hh>
 #include <MAX14870.hh>
+#include <Solenoid.hh>
 #include<vector>
 #include<tuple>
 #include<queue.h>
@@ -34,7 +36,7 @@ struct TxStruct{
     bool tick;
     uint8_t lastDoneCommandNum;
     uint8_t MotorState[4];
-    int16_t adcValue[2];
+    int16_t adcValue[3];
 };
 
 struct RxStruct{
@@ -42,12 +44,12 @@ struct RxStruct{
     uint16_t CommandArgument;
 };
 
-TxStruct txStruct = {0,0,{0,0,0,0},{0,0}};
+TxStruct txStruct = {0,0,{0,0,0,0},{1,1,1}};
 RxStruct rxStruct = {0,0};
 const uint16_t rxBufferLenght = 10;
 auto rxQueue = xQueueCreate(rxBufferLenght, sizeof(rxStruct));
 uint16_t ventingTime = 500; //tmp
-std::vector<std::tuple<ValveInterface*,volatile ValveState>> MotorList;
+std::vector<std::tuple<ValveInterface*,volatile ValveState>> ValveList;
 
 /* USER CODE END PTD */
 
@@ -148,20 +150,22 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_TIM1_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_CAN_Init();
-  MX_ADC1_Init();
   MX_I2C2_Init();
+  MX_ADC1_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(50);
-  MotorList.push_back({new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
-  MotorList.push_back({new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2), ValveStateIDK});
-  //MotorList.push_back({new Motor(M3Dir_GPIO_Port, M3Dir_Pin, &htim1, TIM_CHANNEL_2), ValveStateIDK});
-  //MotorList.push_back({new Motor(M4Dir_GPIO_Port, M4Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
+  ValveList.push_back({new Solenoid(Sol1Dir_GPIO_Port, Sol1Dir_Pin), ValveStateIDK});
+  ValveList.push_back({new Solenoid(Sol2Dir_GPIO_Port, Sol2Dir_Pin), ValveStateIDK});
+  ValveList.push_back({new DoubleMotor(new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2)), ValveStateIDK});
+
+  //ValveList.push_back({new Motor(M3Dir_GPIO_Port, M3Dir_Pin, &htim1, TIM_CHANNEL_2), ValveStateIDK});
+  //ValveList.push_back({new Motor(M4Dir_GPIO_Port, M4Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -581,7 +585,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(M2Dir_GPIO_Port, M2Dir_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, M1Dir_Pin|Ser2Dir_Pin|Ser1Dir_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, M1Dir_Pin|Sol2Dir_Pin|Sol1Dir_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : BI_LED_Pin */
   GPIO_InitStruct.Pin = BI_LED_Pin;
@@ -621,8 +625,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(M1Fault_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : M1Dir_Pin Ser2Dir_Pin Ser1Dir_Pin */
-  GPIO_InitStruct.Pin = M1Dir_Pin|Ser2Dir_Pin|Ser1Dir_Pin;
+  /*Configure GPIO pins : M1Dir_Pin Sol2Dir_Pin Sol1Dir_Pin */
+  GPIO_InitStruct.Pin = M1Dir_Pin|Sol2Dir_Pin|Sol1Dir_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -668,9 +672,9 @@ void handleRxStruct(RxStruct rxStruct){
 	if(rxStruct.CommandNum == 99){
 			HAL_NVIC_SystemReset();
 	}
-	else if(CommandNumValve > 0 && CommandNumValve < 6){ //Motor1 - Motor5
+	else if(CommandNumValve > 0 && CommandNumValve < 4){ //Valve1 - Valve3
 		if(CommandNumState == 0 || CommandNumState == 1 || CommandNumState == 3){
-			setNewExpectedStateOfValveOnVector(MotorList, CommandNumValve - 1, (ValveState)CommandNumState);
+			setNewExpectedStateOfValveOnVector(ValveList, CommandNumValve - 1, (ValveState)CommandNumState);
 		}
 	}
 
@@ -690,34 +694,34 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //ToDo change to loop
 	//ToDO add real de-bounce // https://www.instructables.com/STM32CubeMX-Button-Debounce-With-Interrupt/
-	if(std::get<1>(MotorList[0]) == ValveStateOpen && GPIO_Pin == M1OpenLimitSwitchEXT_Pin){
+	if(std::get<1>(ValveList[0]) == ValveStateOpen && GPIO_Pin == M1OpenLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOB, M1OpenLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[0])->SetState(ValveStateOpen);
+			std::get<0>(ValveList[0])->SetState(ValveStateOpen);
 	}
-	else if(std::get<1>(MotorList[0]) == ValveStateClose && GPIO_Pin == M1CloseLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[0]) == ValveStateClose && GPIO_Pin == M1CloseLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOB, M1CloseLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[0])->SetState(ValveStateClose);
+			std::get<0>(ValveList[0])->SetState(ValveStateClose);
 	}
-	else if(std::get<1>(MotorList[1]) == ValveStateOpen && GPIO_Pin == M2OpenLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[1]) == ValveStateOpen && GPIO_Pin == M2OpenLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOB, M2OpenLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[1])->SetState(ValveStateOpen);
+			std::get<0>(ValveList[1])->SetState(ValveStateOpen);
 	}
-	else if(std::get<1>(MotorList[1]) == ValveStateClose && GPIO_Pin == M2CloseLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[1]) == ValveStateClose && GPIO_Pin == M2CloseLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOA, M2CloseLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[1])->SetState(ValveStateClose);
+			std::get<0>(ValveList[1])->SetState(ValveStateClose);
 	}
 	/*
-	else if(std::get<1>(MotorList[2]) == ValveStateOpen && GPIO_Pin == M3OpenLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[2]) == ValveStateOpen && GPIO_Pin == M3OpenLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOA, M3OpenLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[2])->SetState(ValveStateOpen);
+			std::get<0>(ValveList[2])->SetState(ValveStateOpen);
 	}
-	else if(std::get<1>(MotorList[2]) == ValveStateClose && GPIO_Pin == M3CloseLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[2]) == ValveStateClose && GPIO_Pin == M3CloseLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOA, M3CloseLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[2])->SetState(ValveStateClose);
+			std::get<0>(ValveList[2])->SetState(ValveStateClose);
 	}
-	else if(std::get<1>(MotorList[3]) == ValveStateOpen && GPIO_Pin == M4OpenLimitSwitchEXT_Pin){
+	else if(std::get<1>(ValveList[3]) == ValveStateOpen && GPIO_Pin == M4OpenLimitSwitchEXT_Pin){
 		if (HAL_GPIO_ReadPin(GPIOC, M4OpenLimitSwitchEXT_Pin) == 0)
-			std::get<0>(MotorList[3])->SetState(ValveStateOpen);
+			std::get<0>(ValveList[3])->SetState(ValveStateOpen);
 	}
 	*/
 }
@@ -733,7 +737,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //ToDo change to loop
 /* USER CODE END Header_TaskCOM */
 void TaskCOM(void *argument)
 {
-	/* USER CODE BEGIN 5 */
+  /* USER CODE BEGIN 5 */
 	RxStruct currentCommand = {0,0};
 	HAL_I2C_EnableListen_IT(&hi2c2); // Start listening for I2C master call.
 
@@ -750,7 +754,7 @@ void TaskCOM(void *argument)
 		}
 		osDelay(100);
 	}
-	/* USER CODE END 5 */
+  /* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_TaskValves */
@@ -765,7 +769,7 @@ void TaskValves(void *argument)
   /* USER CODE BEGIN TaskValves */
   /* Infinite loop */
 	while(true){
-		for(auto motor : MotorList){
+		for(auto motor : ValveList){
 			TryReachExpectedState(motor, *(static_cast<uint16_t*>(argument)));
 		}
 		osDelay(50);
@@ -794,14 +798,15 @@ void TaskMeasure(void *argument)
 			tick,
 			txStruct.lastDoneCommandNum,
 			{
-				(uint8_t)std::get<0>(MotorList[0])->GetState(),
-				(uint8_t)std::get<0>(MotorList[1])->GetState(),
-				0,//(uint8_t)std::get<0>(MotorList[2])->GetState(),
-				0//(uint8_t)std::get<0>(MotorList[3])->GetState()
+				(uint8_t)std::get<0>(ValveList[0])->GetState(),
+				(uint8_t)std::get<0>(ValveList[1])->GetState(),
+				0,//(uint8_t)std::get<0>(ValveList[2])->GetState(),
+				0//(uint8_t)std::get<0>(ValveList[3])->GetState()
 			},
 			{
-				ADCData[0],	//Pressure
-				ADCData[1]	//Battery Voltage
+				ADCData[1],	//Pressure
+				ADCData[0],	//Solenoid 1 ADC
+				ADCData[2]	//Solenoid 2 ADC
 			}
 		};
 		osDelay(500);
