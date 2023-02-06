@@ -42,20 +42,13 @@ void pinInit()
     //BUZZER & SPEAKER
     pinMode(BUZZER, OUTPUT);
     digitalWrite(BUZZER, LOW);
-    pinMode(SPEAKER, OUTPUT);
-    digitalWrite(SPEAKER, LOW);
 
-    //RESET
+
+    //RESET STM
     pinMode(RST, OUTPUT);
 
 
     //I2C
     Wire.begin(I2C_SDA, I2C_SCL);
 
-
-    //CAMERA
-    pinMode(RUNCAM, INPUT);// INPUT FOR ABORT BUTTON
-    // digitalWrite(RUNCAM, HIGH);
-
-    //
 }

@@ -25,7 +25,7 @@ void setup() {
   esp_wifi_set_mac(ESP_IF_WIFI_STA, adressTanwa);
 
   ledcSetup(0,2000,8);// PWM FOR BUZZER
-  ledcAttachPin(SPEAKER, 0);
+  ledcAttachPin(BUZZER, 0);
   
   stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
   stm.i2c.setTimeOut(20);
@@ -44,20 +44,22 @@ void setup() {
       expander.softReset(); //WARNING - EXPANDER ON SECOND PCB NEEDED THIS!!!!!! CHECK BEHAVIOUR FOR 1ST ONE
 
       Serial.println("CONNECTED");
-      expander.setPinPullUp(5,A,OFF); //all termopary down
-      expander.setPinPullUp(6,A,OFF);
-      expander.setPinPullUp(7,A,OFF);
 
-      expander.setPinX(4,A,OUTPUT,ON); // STM RST OFF
+
       expander.setPinX(0,B,INPUT,ON); //input for abort button
+      expander.setPinX(7,A,INPUT,ON); //input for SD card connection check
 
-      expander.setPinPullUp(1,B,OFF);// all leds off
-      expander.setPinPullUp(2,B,OFF);
-      expander.setPinPullUp(3,B,OFF);
-      expander.setPinPullUp(4,B,OFF);
-      expander.setPinPullUp(5,B,OFF);
-      expander.setPinPullUp(6,B,OFF);
-      expander.setPinPullUp(7,B,OFF);
+    // all leds off
+      expander.setPinPullUp(1,B,OFF);// LED1
+      expander.setPinPullUp(2,B,OFF);// LED2
+      expander.setPinPullUp(3,B,OFF);// LED3
+      expander.setPinPullUp(4,B,OFF);// LED4
+      expander.setPinPullUp(5,B,OFF);// LED5
+      expander.setPinPullUp(6,B,OFF);// LED6
+      expander.setPinPullUp(7,B,OFF);// LED7
+      expander.setPinPullUp(6,A,OFF);// LED8
+      expander.setPinPullUp(5,A,OFF);// LED9
+      expander.setPinPullUp(4,A,OFF);// LED10
 
     }
   

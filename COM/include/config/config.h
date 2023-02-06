@@ -30,9 +30,9 @@ static String dataFileName= "/data_";
 #define OPEN_VALVE 0x01
 #define CLOSE_VALVE 0x00
 #define TIMED_OPEN_VALVE 0x03
-#define MOTOR_FILL 0x05
+#define MOTOR_FILL 0x01
 #define MOTOR_DEPR 0x02
-#define MOTOR_QUICK_DISCONNECT 0x03
+#define MOTOR_QUICK_DISCONNECT 0x03 //remember about that there are 2 of them
 
 
 #define LORA_FREQ_MHZ 867    //927

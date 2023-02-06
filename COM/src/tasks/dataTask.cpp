@@ -71,8 +71,7 @@ void dataTask(void *arg){
     dataFrame.motorState_1 = pwrData.motorState[0];
     dataFrame.motorState_2 = pwrData.motorState[1];
     dataFrame.motorState_3 = pwrData.motorState[2];
-    dataFrame.motorState_4 = pwrData.motorState[3];
-    dataFrame.motorState_5 = pwrData.motorState[4];
+
   
 
     dataFrame.tanWaState = StateMachine::getCurrentState();
@@ -89,7 +88,7 @@ void dataTask(void *arg){
     xQueueSend(stm.sdQueue, (void*)data, 0); 
 
       // xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      if(digitalRead(RUNCAM)==0){// ABORT BUTTON
+      if(digitalRead(ABORT_ESP)==0){// ABORT BUTTON
         abort_count++;
         Serial.println("==================");
         Serial.println("ABORT ++");
@@ -128,8 +127,7 @@ void dataTask(void *arg){
     Serial.print("MOTOR STATE 0: "); Serial.println(pwrData.motorState[0]);
     Serial.print("MOTOR STATE 1: "); Serial.println(pwrData.motorState[1]);
     Serial.print("MOTOR STATE 2: "); Serial.println(pwrData.motorState[2]);
-    Serial.print("MOTOR STATE 3: "); Serial.println(pwrData.motorState[3]);
-    Serial.print("MOTOR STATE 4: "); Serial.println(pwrData.motorState[4]);
+    
 
     Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
@@ -142,8 +140,7 @@ void dataTask(void *arg){
     Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
     Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
-
-
+    
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     vTaskDelay(500 / portTICK_PERIOD_MS);

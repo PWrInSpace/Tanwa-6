@@ -10,7 +10,7 @@ enum FrameStates {
     PLSS_,
     TANK_,
     DEPR_,
-    ARMM_,
+    QD_,
     ARM_,
     DISARM_,
     IGNITER_,
@@ -33,7 +33,7 @@ FrameStates resolveOption(string input) {
     if( input == "PLSS" ) return PLSS_;
     if( input == "TANK" ) return TANK_;
     if( input == "DEPR" ) return DEPR_;
-    if( input == "ARMM" ) return ARMM_;
+    if( input == "QD" ) return QD_;
     if( input == "ARM" ) return ARM_;
     if( input == "DISARM" ) return DISARM_;
     if( input == "IGNITER" ) return IGNITER_;
@@ -122,8 +122,7 @@ void rxHandlingTask(void* arg){
       Serial.print("LORAAAAAAAAAAAAAAAAAAAAAAA: ");
       
       Serial.println(loraRx);
-    
-      //TODO parser
+    //parser
       string frame_array [50];
       string loraRx_frame = loraRx;
       string delimiter = ";";
@@ -174,7 +173,7 @@ void rxHandlingTask(void* arg){
               printf("MOTOOOOR DEPR\n");
               break;
 
-            case ARMM_:
+            case QD_:
               xSemaphoreTake(stm.i2cMutex, pdTRUE);
               pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, atoi(frame_array[2].c_str()),atoi(frame_array[3].c_str()));
               xSemaphoreGive(stm.i2cMutex);

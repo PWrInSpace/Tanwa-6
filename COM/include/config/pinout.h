@@ -21,8 +21,8 @@
 #define LORA_RS 4
 
 //BUZZER & SPEAKER
-#define BUZZER 33
-#define SPEAKER 25
+#define BUZZER 25
+//#define SPEAKER 25
 
 //HX711
 #define HX1_SDA 15
@@ -43,20 +43,19 @@
 #define I2C_SDA 21
 
 //SD CHIP SELECT
-#define SD_CS 17
+#define SD_CS 33
 
 #define TX 1
 #define RX 3
 
-//CAMERA 
-#define RUNCAM 16
+#define ABORT_ESP 16
 
 #define BOOT 0 //????????
 
 
 //expander
 #define MCP_ADDRESS 0x20 // (A2/A1/A0 = LOW)
-#define RESET_PIN 4 
+#define RESET_PIN 4 // equivalent to STM_RST 16 pin - lefovers from Tnawa+4
 
 
 void beepBoop(int delay, int times, int devicePin);

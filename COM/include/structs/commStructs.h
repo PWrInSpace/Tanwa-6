@@ -22,7 +22,7 @@ struct TxData{
 struct PWRData{
   bool tick = {};
   uint8_t lastDoneCommandNum = {};
-  uint8_t motorState[5] = {};
+  uint8_t motorState[4] = {};
   int16_t adcValue[2] = {}; //tanwa voltage adc[4]
 };
 
@@ -41,6 +41,8 @@ struct Options{
 struct DataFrame{
   uint8_t tanWaState;
   uint16_t pressureSensor;
+  uint16_t solenoid_fill; //pin pa0 10 pin stm adc
+  uint16_t solenoid_depr; // pin pa2 12 pin stm adc
   bool tankHeating : 1;
   bool abortButton : 1;
   bool armButton : 1;
@@ -51,14 +53,11 @@ struct DataFrame{
   uint8_t motorState_2;
   uint8_t motorState_3;
   uint8_t motorState_4;
-  uint8_t motorState_5;
   float rocketWeight;
   float tankWeight; 
   uint32_t rocketWeightRaw;
   uint32_t tankWeightRaw;
-  float thermocouple_1;
-  float thermocouple_2;
-  float thermocouple_3;
+
 
   DataFrame():
     tanWaState(States::INIT),
@@ -72,15 +71,13 @@ struct DataFrame{
     motorState_2(0),
     motorState_3(0),
     motorState_4(0),
-    motorState_5(0),
     rocketWeight(0),
     tankWeight(0),
     rocketWeightRaw(0),
     tankWeightRaw(0),
-    thermocouple_1(0),
-    thermocouple_2(0),
-    thermocouple_3(0)
-
+    pressureSensor(0),
+    solenoid_fill(0),
+    solenoid_depr(0)
   {}
 };
 

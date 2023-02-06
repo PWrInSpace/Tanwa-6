@@ -96,7 +96,7 @@ void buzzerTask(void *arg){
            analogRead(IGN_TEST_CON_2) > 1000) && (StateMachine::getCurrentState() >= ARMED_TO_LAUNCH && StateMachine::getCurrentState() != ABORT))
         {
             // beepBoop(100, 1, SPEAKER);
-            beepBoop(50, 1, BUZZER);
+            //beepBoop(50, 1, BUZZER);
             ledcWriteTone(0, 3000);
             ledcWrite(0, 255);
             vTaskDelay(50 / portTICK_PERIOD_MS);
@@ -107,7 +107,7 @@ void buzzerTask(void *arg){
         else if (StateMachine::getCurrentState() == ABORT)
         {
             // beepBoop(50, 1, SPEAKER);
-            beepBoop(20, 1, BUZZER);
+            //beepBoop(20, 1, BUZZER);
 
             ledcWriteTone(0, 3000);
             ledcWrite(0, 255);
@@ -116,7 +116,7 @@ void buzzerTask(void *arg){
         else if (StateMachine::getCurrentState() == HOLD)
         {
             // beepBoop(50, 1, SPEAKER);
-            beepBoop(20, 1, BUZZER);
+            //beepBoop(20, 1, BUZZER);
             vTaskDelay(500 / portTICK_PERIOD_MS);
             ledcWriteTone(0, 2500);
             ledcWrite(0, 255);
