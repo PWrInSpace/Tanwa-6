@@ -1,7 +1,7 @@
-#include "../include/components/hx711.h"
+#include "../include/components/hx711_api.h"
 #include <Arduino.h>
 
-void Hx711::calibration(int known_mass){
+void HX711_api::calibration(int known_mass){
 
 
     set_scale();    

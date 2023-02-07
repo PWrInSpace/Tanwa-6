@@ -11,8 +11,8 @@
 SoftwareToolsManagment stm;
 InternalI2C<PWRData, TxData> pwrCom(&stm.i2c, COM_ADRESS);
 // HX711
-HX711 rckWeight;
-HX711 tankWeigh;
+HX711_api rckWeight;
+HX711_api tankWeigh;
 
 MCP23017 expander = MCP23017(&stm.i2c,MCP_ADDRESS,RST);
 
@@ -22,7 +22,7 @@ void setup() {
   pinInit();
 
   WiFi.mode(WIFI_STA);
-  esp_wifi_set_mac(ESP_IF_WIFI_STA, adressTanwa);
+  esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
 
   ledcSetup(0,2000,8);// PWM FOR BUZZER
   ledcAttachPin(BUZZER, 0);

@@ -13,7 +13,7 @@ bool InternalI2C<rxType, txType>::sendCommand(txType *_data){
   size_t writeStatus = 0;
   i2c->beginTransmission(address);
   writeStatus = i2c->write((uint8_t*) _data, sizeof(txType));
-  if(i2c->endTransmission() != I2C_ERROR_OK){
+  if(i2c->endTransmission() != 0){
     return false;
   }
   
@@ -49,7 +49,7 @@ bool InternalI2C<rxType, txType>::sendCommandMotor(uint8_t _command_valve, uint8
   txType *_data = &motorMsg;
   i2c->beginTransmission(address);
   writeStatus = i2c->write((uint8_t*) _data, sizeof(txType));
-  if(i2c->endTransmission() != I2C_ERROR_OK){
+  if(i2c->endTransmission() != 0){
     return false;
   }
   
@@ -141,7 +141,7 @@ bool InternalI2C<rxType, txType>::sendCommandMotor(uint8_t _command_valve, uint8
 
 //     }
 
-//   if(i2c->endTransmission() != I2C_ERROR_OK){
+//   if(i2c->endTransmission() != 0){
 //     return false;
 //   }
   

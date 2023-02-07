@@ -1,40 +1,5 @@
 #include "../include/tasks/tasks.h"
 
-
-
-
-
-// ADC2_China.begin(HX2_SDA, HX2_SCL);
-
-  // if (ADC2_China.is_ready()) {
-  //   if(digitalRead(BT_JUMP)==1){
-  //     Serial.println("500 grams");
-  //     ADC2_China.calibration(500);
-  //   }
-  //   else{
-  //     Serial.println("8000 grams");
-  //     ADC2_China.calibration(8000);
-  //   }
-
-  //   // ADC2_China.set_scale(107);
-  //   // ADC2_China.set_offset(19746);
-  //   ADC2_China.tare();
-  //   Serial.print("ADC2 OFFSEEEEET "); Serial.println(ADC2_China.get_offset());
-  //   vTaskDelay(1000/portTICK_PERIOD_MS);
-  // }
-
-
-
-
-
-
-
-
-
-
-
-
-
 char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
 //kod w tym tasku jest tylko do debugu 

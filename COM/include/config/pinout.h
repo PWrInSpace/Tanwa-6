@@ -1,7 +1,7 @@
 #ifndef PINOUT_H
 #define PINOUT_H
 
-#include "FreeRTOS.h"
+#include "freertos/FreeRTOS.h"
 #include "Arduino.h"
 
 // igniters

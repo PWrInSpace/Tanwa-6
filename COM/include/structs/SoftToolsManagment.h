@@ -1,12 +1,14 @@
 #ifndef HARDWARE_MANAGMENT_HH
 #define HARDWARE_MANAGMENT_HH
 
-#include "FreeRTOS.h"
+
+#include "freertos/FreeRTOS.h"
 #include <SPI.h>
 #include <Wire.h>
 
 struct SoftwareToolsManagment{
   TaskHandle_t loraTask;
+
   TaskHandle_t sdTask;
   TaskHandle_t dataTask;
   TaskHandle_t stateTask;
