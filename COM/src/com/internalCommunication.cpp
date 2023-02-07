@@ -45,7 +45,7 @@ bool InternalI2C<rxType, txType>::sendCommandMotor(uint8_t _command_valve, uint8
   size_t writeStatus = 0;
   TxData motorMsg{00,0};
   motorMsg.command = _command_valve*10+_command_state;// combinig command valve with state (33,300) - vent vale open_timed for 300ms
-  motorMsg.commandValue = _commandValue;
+  motorMsg.commandValue = _commandValue; //TODO CHECK TIME OPEN WHETHER IT WORKS
   txType *_data = &motorMsg;
   i2c->beginTransmission(address);
   writeStatus = i2c->write((uint8_t*) _data, sizeof(txType));

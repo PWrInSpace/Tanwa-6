@@ -24,7 +24,7 @@ enum FrameStates {
     STAT_,
     HOLD_IN_,
     HOLD_OUT_,
-    ABRT_,
+    ABORT_,
     INVALID
 };
 
@@ -47,7 +47,7 @@ FrameStates resolveOption(string input) {
     if( input == "STAT" ) return STAT_;
     if( input == "HOLD_IN" ) return HOLD_IN_;
     if( input == "HOLD_OUT" ) return HOLD_OUT_;
-    if( input == "ABRT" ) return ABRT_;
+    if( input == "ABORT" ) return ABORT_;
     //...
     return INVALID;
  }
@@ -267,7 +267,7 @@ void rxHandlingTask(void* arg){
                 Serial.println("ERROR HOLD OUT");
               break;
 
-            case ABRT_:
+            case ABORT_:
               Serial.println("ABORT");
               StateMachine::changeStateRequest(States::ABORT);
               break;

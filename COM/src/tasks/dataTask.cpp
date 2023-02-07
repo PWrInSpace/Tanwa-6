@@ -71,6 +71,7 @@ void dataTask(void *arg){
     dataFrame.motorState_1 = pwrData.motorState[0];
     dataFrame.motorState_2 = pwrData.motorState[1];
     dataFrame.motorState_3 = pwrData.motorState[2];
+    dataFrame.motorState_4 = pwrData.motorState[3];
 
   
 
@@ -124,23 +125,25 @@ void dataTask(void *arg){
     Serial.println("\n\n\nCOM DATA:");
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
     Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
-    Serial.print("MOTOR STATE 0: "); Serial.println(pwrData.motorState[0]);
-    Serial.print("MOTOR STATE 1: "); Serial.println(pwrData.motorState[1]);
-    Serial.print("MOTOR STATE 2: "); Serial.println(pwrData.motorState[2]);
+    Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
+    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
+    Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
+    Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
+    Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
     
 
     Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
     dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
     Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
-    Serial.print("TANWA VOLTAGE 4: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
+    Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
  
 
     Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
     Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
     Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
-    
+
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     vTaskDelay(500 / portTICK_PERIOD_MS);

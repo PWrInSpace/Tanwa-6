@@ -121,18 +121,18 @@ void stateTask(void *arg)
 
         Serial.println("Close motor depr close filling state");
         xSemaphoreTake(stm.i2cMutex, pdTRUE); //TODO ALL SOLENOIDS NEED TO BE CHANGED IN TERMS OF LOGIC WHEN THERE WOULD BE NO CONFIRMATION
-        pwrCom.sendCommandMotor(MOTOR_DEPR, CLOSE_VALVE);
+        pwrCom.sendCommandMotor(MOTOR_DEPR, CLOSE_VALVE);//TODO above done i suppose
         xSemaphoreGive(stm.i2cMutex);
         vTaskDelay(5000 / portTICK_PERIOD_MS);
         
-        if (pwrData.motorState[MOTOR_DEPR-1] == CLOSE_VALVE)
-        {
+       // if (pwrData.motorState[MOTOR_DEPR-1] == CLOSE_VALVE)
+       // {
           Serial.println("Open motor fill close filling state");
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
           xSemaphoreGive(stm.i2cMutex);
           vTaskDelay(5000 / portTICK_PERIOD_MS);
-        }
+       // }
       }
 
       break;
@@ -195,27 +195,27 @@ void stateTask(void *arg)
 
         hold_flag = true;
 
-        while (pwrData.motorState[MOTOR_FILL-1] != CLOSE_VALVE)
-        {
+       // while (pwrData.motorState[MOTOR_FILL-1] != CLOSE_VALVE)
+        //{
 
           Serial.println("Close motor fill HOLD");
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
           xSemaphoreGive(stm.i2cMutex);
           vTaskDelay(5000 / portTICK_PERIOD_MS);
-        }
+        //}
 
-        if (pwrData.motorState[MOTOR_FILL-1] == CLOSE_VALVE)
-        {
-          while (pwrData.motorState[MOTOR_DEPR-1] != OPEN_VALVE)
-          {
+       // if (pwrData.motorState[MOTOR_FILL-1] == CLOSE_VALVE)
+        //{
+         // while (pwrData.motorState[MOTOR_DEPR-1] != OPEN_VALVE)
+         // {
             Serial.println("Open motor depr HOLD");
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_DEPR, OPEN_VALVE);
             xSemaphoreGive(stm.i2cMutex);
             vTaskDelay(5000 / portTICK_PERIOD_MS);
-          }
-        }
+         // }
+       // }
       }
       // CLOSE VALVES MSG
 
@@ -235,27 +235,27 @@ void stateTask(void *arg)
         abort_flag = true;
         // CLOSE FILL, OPEN DEPR
 
-        while (pwrData.motorState[MOTOR_FILL-1]  != CLOSE_VALVE)
-        {
+        //while (pwrData.motorState[MOTOR_FILL-1]  != CLOSE_VALVE)
+       // {
 
           Serial.println("Close motor fill");
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
           xSemaphoreGive(stm.i2cMutex);
           vTaskDelay(15000 / portTICK_PERIOD_MS);
-        }
+       // }
 
-        if (pwrData.motorState[MOTOR_FILL-1]  == CLOSE_VALVE)
-        {
-          while (pwrData.motorState[MOTOR_DEPR-1]  != OPEN_VALVE)
-          {
+       // if (pwrData.motorState[MOTOR_FILL-1]  == CLOSE_VALVE)
+        //{
+          //while (pwrData.motorState[MOTOR_DEPR-1]  != OPEN_VALVE)
+        //  {
             Serial.println("Open motor depr");
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_DEPR, OPEN_VALVE);
             xSemaphoreGive(stm.i2cMutex);
             vTaskDelay(5000 / portTICK_PERIOD_MS);
-          }
-        }
+         // }
+       // }
       }
 
       break;
