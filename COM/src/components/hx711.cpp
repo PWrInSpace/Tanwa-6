@@ -1,36 +1,22 @@
 #include "../include/components/hx711.h"
+#include <Arduino.h>
 
-float Hx711::CustomCalibration(float known_mass)
-{
-	//Serial.println("WAIT FOR TARE");
-
-	/*refreshDataSet(); //refresh the dataset to be sure that the known mass is measured correctly
-	//tare();
-	uint32_t initialValue = smoothedData();
-	setTareOffset(initialValue);
-
-	Serial.println("put");
-	vTaskDelay(delay_ms / portTICK_PERIOD_MS);
-	refreshDataSet();
-	uint32_t finalValue = smoothedData();
-	setCalFactor(((float)(finalValue-initialValue)/known_mass));*/
-
-  //tare();
+void Hx711::calibration(int known_mass){
 
 
-
-  getNewCalibration(known_mass);
-
-
-	return getCalFactor();
+    set_scale();    
+    Serial.println("Tare... remove any weights from the scale.");
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+    tare();
 	
-}
+    Serial.println("Tare done...");
+    Serial.println("Place a known weight on the scale...");
+    vTaskDelay(45000 / portTICK_PERIOD_MS);
 
-float Hx711::getRawData() // return fresh data from the moving average dataset
-{
-	long data = 0;
-	lastSmoothedData = smoothedData();
-	data = lastSmoothedData - tareOffset;
-	float x = (float)data;
-	return x;
+    float cal_factor = get_units(10)/known_mass;
+    Serial.print("CAAAL FAAACTOR: "); Serial.println(cal_factor,3);
+    Serial.println("REMOVE OBJECT FROM THE SCLAE!");
+    vTaskDelay(45000 / portTICK_PERIOD_MS);
+    set_scale(cal_factor);
+
 }

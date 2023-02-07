@@ -1,9 +1,40 @@
 #include "../include/tasks/tasks.h"
 
 
-// extern Hx711 rckWeight;
-// extern Hx711 tankWeight;
-// extern MCP23017 expander;
+
+
+
+// ADC2_China.begin(HX2_SDA, HX2_SCL);
+
+  // if (ADC2_China.is_ready()) {
+  //   if(digitalRead(BT_JUMP)==1){
+  //     Serial.println("500 grams");
+  //     ADC2_China.calibration(500);
+  //   }
+  //   else{
+  //     Serial.println("8000 grams");
+  //     ADC2_China.calibration(8000);
+  //   }
+
+  //   // ADC2_China.set_scale(107);
+  //   // ADC2_China.set_offset(19746);
+  //   ADC2_China.tare();
+  //   Serial.print("ADC2 OFFSEEEEET "); Serial.println(ADC2_China.get_offset());
+  //   vTaskDelay(1000/portTICK_PERIOD_MS);
+  // }
+
+
+
+
+
+
+
+
+
+
+
+
+
 char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
 //kod w tym tasku jest tylko do debugu 
@@ -56,15 +87,13 @@ void dataTask(void *arg){
     else
       turnVar = 1;
 
-    if(tankWeight.update() == 1){
-      dataFrame.tankWeight = tankWeight.getData();
-      dataFrame.tankWeightRaw = (uint32_t) tankWeight.getRawData();
-    }
-
-    if(rckWeight.update() == 1){
-      dataFrame.rocketWeight = rckWeight.getData();
-      dataFrame.rocketWeightRaw = (uint32_t) rckWeight.getRawData();
-    }
+    
+    dataFrame.tankWeight = tankWeight.getunits(1);
+    dataFrame.tankWeightRaw = (uint32_t) tankWeight.read();
+    
+    dataFrame.rocketWeight = rckWeight.getunits(1);
+    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.read();
+    
 
     dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
     // memcpy(dataFrame.motorState, pwrData.motorState, sizeof(uint8_t[5]));
@@ -87,7 +116,7 @@ void dataTask(void *arg){
     // xQueueSend(stm.loraTxQueue, (void*)data, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
-
+      //TODO check polarity of pin ABORT on esp pull up or down
       // xSemaphoreTake(stm.i2cMutex, pdTRUE);
       if(digitalRead(ABORT_ESP)==0){// ABORT BUTTON
         abort_count++;

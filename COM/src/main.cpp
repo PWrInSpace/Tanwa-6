@@ -11,8 +11,8 @@
 SoftwareToolsManagment stm;
 InternalI2C<PWRData, TxData> pwrCom(&stm.i2c, COM_ADRESS);
 // HX711
-Hx711 rckWeight(HX1_SDA, HX1_SCL);
-Hx711 tankWeight(HX2_SDA, HX2_SCL);
+HX711 rckWeight;
+HX711 tankWeigh;
 
 MCP23017 expander = MCP23017(&stm.i2c,MCP_ADDRESS,RST);
 

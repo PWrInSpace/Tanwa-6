@@ -6,7 +6,8 @@
 #include "LoRa.h"
 #include "../config/config.h"
 #include "../components/SDcard.h"
-#include <HX711_ADC.h>
+//#include <HX711_ADC.h>
+#include "HX711.h"
 #include "../components/hx711.h"
 #include "../structs/stateMachine.h"
 #include "../com/internalCommunication.h"
@@ -17,8 +18,9 @@
 extern SoftwareToolsManagment stm;
 extern InternalI2C<PWRData, TxData> pwrCom;
 extern MCP23017 expander;
-extern Hx711 rckWeight;
-extern Hx711 tankWeight;
+extern HX711 rckWeight;
+extern HX711 tankWeight;
+extern HX711 ADC2_China;
 
 
 //pro_cpu
