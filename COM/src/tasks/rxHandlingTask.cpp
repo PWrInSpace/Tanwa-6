@@ -83,7 +83,7 @@ void rxHandlingTask(void* arg){
           break;
         
         case CALIBRATE_RCK:
-          rckWeight.CustomCalibration(espNowCommand.commandValue);
+          rckWeight.calibration(espNowCommand.commandValue);
           break;
 
         case TARE_TANK:
@@ -91,7 +91,7 @@ void rxHandlingTask(void* arg){
           break;
 
         case CALIBRATE_TANK:
-          tankWeight.CustomCalibration(espNowCommand.commandValue);
+          tankWeight.calibration(espNowCommand.commandValue);
           break;
 
         case SOFT_ARM:
@@ -198,7 +198,9 @@ void rxHandlingTask(void* arg){
               break;
             
             case CALIBRATE_RCK_:
-              Serial.print("CAL FACTOR ROCKET: "); Serial.println(rckWeight.CustomCalibration(atoi(frame_array[2].c_str())));
+              rckWeight.calibration(atoi(frame_array[2].c_str()));
+              Serial.print("CAL FACTOR ROCKET: "); 
+              Serial.println(rckWeight.get_scale());
               break;
 
             case TARE_TANK_:
@@ -208,7 +210,9 @@ void rxHandlingTask(void* arg){
             case CALIBRATE_TANK_:
               // tankWeight.CustomCalibration(atoi(frame_array[3].c_str()),0);
               // tankWeight.CustomCalibration(atoi(frame_array[2].c_str()));
-              Serial.print("CAL FACTOR TANK: "); Serial.println(tankWeight.CustomCalibration(atoi(frame_array[2].c_str())));
+              tankWeight.calibration(atoi(frame_array[2].c_str()));
+              Serial.print("CAL FACTOR TANK: "); 
+              Serial.println(tankWeight.get_scale());
 
               break;
 
@@ -234,11 +238,11 @@ void rxHandlingTask(void* arg){
 
           case SET_CAL_FACTOR_:
             if(frame_array[2]=="RCK"){
-              rckWeight.setCalFactor(atoi(frame_array[3].c_str()));
+              rckWeight.set_scale(atoi(frame_array[3].c_str()));
               Serial.print("CAL FACTOR RCK = "); Serial.println(atoi(frame_array[3].c_str()));
             }
             else if (frame_array[2]=="TANK"){
-              tankWeight.setCalFactor(atoi(frame_array[3].c_str()));
+              tankWeight.set_scale(atoi(frame_array[3].c_str()));
               Serial.print("CAL FACTOR TANK = "); Serial.println(atoi(frame_array[3].c_str()));
             }
             

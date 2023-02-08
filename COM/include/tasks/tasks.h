@@ -8,6 +8,7 @@
 #include "../components/SDcard.h"
 
 #include "../components/hx711_api.h"
+#include "HX711.h"
 #include "../structs/stateMachine.h"
 #include "../com/internalCommunication.h"
 #include "../structs/commStructs.h"

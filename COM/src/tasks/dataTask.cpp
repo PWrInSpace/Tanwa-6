@@ -11,18 +11,19 @@ void dataTask(void *arg){
   expander.setPinMode(0,B,INPUT); //input for abort button
 
   //HX711
-  rckWeight.begin();
-  rckWeight.start(STABILIZNG_TIME, true); //start without tare
-  rckWeight.setCalFactor(BIT_TO_GRAM_RATIO_RCK);
-  // rckWeight.setTareOffset(OFFSET_RCK);
-  rckWeight.setSamplesInUse(1);
+  rckWeight.begin(HX1_SDA, HX1_SCL);
+  //rckWeight.set_gain(128);
+  //rckWeight.wait_ready_timeout(); //start without tare
+  rckWeight.set_scale(BIT_TO_GRAM_RATIO_RCK);
+  // rckWeight.set_offset(OFFSET_RCK);
 
-  tankWeight.begin();
-  tankWeight.start(STABILIZNG_TIME, true); //start without tare
-  tankWeight.setCalFactor(BIT_TO_GRAM_RATIO_TANK);
-  // tankWeight.setTareOffset(OFFSET_TANK);
-  tankWeight.setSamplesInUse(1);
-  while (tankWeight.getTareTimeoutFlag() && rckWeight.getTareTimeoutFlag())
+  tankWeight.begin(HX2_SDA, HX2_SCL);
+  //tankWeight.set_gain(128);
+  //tankWeight.wait_ready_timeout(); //start without tare
+  tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
+  // tankWeight.set_offset(OFFSET_TANK);
+;
+  while (tankWeight.wait_ready_retry() && rckWeight.wait_ready_retry())
   {
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
@@ -53,11 +54,11 @@ void dataTask(void *arg){
       turnVar = 1;
 
     
-    dataFrame.tankWeight = tankWeight.getunits(1);
-    dataFrame.tankWeightRaw = (uint32_t) tankWeight.read();
+    dataFrame.tankWeight = tankWeight.get_units(1);
+    dataFrame.tankWeightRaw = (uint32_t) tankWeight.get_value(1);
     
-    dataFrame.rocketWeight = rckWeight.getunits(1);
-    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.read();
+    dataFrame.rocketWeight = rckWeight.get_units(1);
+    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(1);
     
 
     dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
