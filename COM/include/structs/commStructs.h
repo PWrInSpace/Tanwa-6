@@ -61,6 +61,9 @@ struct DataFrame{
 
   DataFrame():
     tanWaState(States::INIT),
+    pressureSensor(0),
+    solenoid_fill(0),
+    solenoid_depr(0),
     tankHeating(0),
     abortButton(0),
     armButton(0),
@@ -74,10 +77,7 @@ struct DataFrame{
     rocketWeight(0),
     tankWeight(0),
     rocketWeightRaw(0),
-    tankWeightRaw(0),
-    pressureSensor(0),
-    solenoid_fill(0),
-    solenoid_depr(0)
+    tankWeightRaw(0)
   {}
 };
 

@@ -20,7 +20,7 @@ extern InternalI2C<PWRData, TxData> pwrCom;
 extern MCP23017 expander;
 extern HX711_api rckWeight;
 extern HX711_api tankWeight;
-// extern HX711 ADC2_China;
+
 
 
 //pro_cpu

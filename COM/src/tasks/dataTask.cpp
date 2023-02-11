@@ -1,9 +1,9 @@
-#include "../include/tasks/tasks.h"
+ #include "../include/tasks/tasks.h"
 
-char data[SD_FRAME_SIZE] = {};
+ char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
-//kod w tym tasku jest tylko do debugu 
-void dataTask(void *arg){
+
+ void dataTask(void *arg){
   uint32_t abort_count = 0;
   int turnVar = 0;
   DataFrame dataFrame;
@@ -13,17 +13,22 @@ void dataTask(void *arg){
   //HX711
   rckWeight.begin(HX1_SDA, HX1_SCL);
   //rckWeight.set_gain(128);
-  //rckWeight.wait_ready_timeout(); //start without tare
+  //rckWeight.wait_ready_timeout(); 
   rckWeight.set_scale(BIT_TO_GRAM_RATIO_RCK);
   // rckWeight.set_offset(OFFSET_RCK);
 
-  tankWeight.begin(HX2_SDA, HX2_SCL);
+  tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
   //tankWeight.set_gain(128);
-  //tankWeight.wait_ready_timeout(); //start without tare
+  //tankWeight.wait_ready_timeout(); 
   tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
   // tankWeight.set_offset(OFFSET_TANK);
 ;
-  while (tankWeight.wait_ready_retry() && rckWeight.wait_ready_retry())
+  // while (tankWeight.wait_ready_retry() && rckWeight.wait_ready_retry())
+  // {
+  //   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  // }
+
+  while (!tankWeight.wait_ready_retry())
   {
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
@@ -62,7 +67,7 @@ void dataTask(void *arg){
     
 
     dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
-    // memcpy(dataFrame.motorState, pwrData.motorState, sizeof(uint8_t[5]));
+    //### memcpy(dataFrame.motorState, pwrData.motorState, sizeof(uint8_t[5]));
     dataFrame.motorState_1 = pwrData.motorState[0];
     dataFrame.motorState_2 = pwrData.motorState[1];
     dataFrame.motorState_3 = pwrData.motorState[2];
@@ -79,30 +84,31 @@ void dataTask(void *arg){
     createDataFrame(dataFrame, data);
 
     Serial.println(data);
-    // xQueueSend(stm.loraTxQueue, (void*)data, 0);
+    xQueueSend(stm.loraTxQueue, (void*)data, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
       // xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      if(digitalRead(ABORT_ESP)==0){// ABORT BUTTON
-        abort_count++;
-        Serial.println("==================");
-        Serial.println("ABORT ++");
-        Serial.println("==================");
-        if(abort_count>=3){
-          xSemaphoreTake(stm.i2cMutex, pdTRUE);
-          expander.setPinPullUp(1,B,ON);
-          xSemaphoreGive(stm.i2cMutex);
-          StateMachine::changeStateRequest(States::ABORT);
-          Serial.println("ABORT BUTTON CONFIRMATION");
-        }
-      }
-      else{
-        abort_count = 0;
-        xSemaphoreTake(stm.i2cMutex, pdTRUE);
-        expander.setPinPullUp(1,B,OFF);
-        xSemaphoreGive(stm.i2cMutex);
-      }
+      //TODO UNCOMMENT + change pin or solder correct pull up
+      // if(digitalRead(ABORT_ESP)==0){// ABORT BUTTON
+      //   abort_count++;
+      //   Serial.println("==================");
+      //   Serial.println("ABORT ++");
+      //   Serial.println("==================");
+      //   if(abort_count>=3){
+      //     xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      //     expander.setPinPullUp(1,B,ON);
+      //     xSemaphoreGive(stm.i2cMutex);
+      //     StateMachine::changeStateRequest(States::ABORT);
+      //     Serial.println("ABORT BUTTON CONFIRMATION");
+      //   }
+      // }
+      // else{
+      //   abort_count = 0;
+      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      //   expander.setPinPullUp(1,B,OFF);
+      //   xSemaphoreGive(stm.i2cMutex);
+      // }
        
 
       // xSemaphoreGive(stm.i2cMutex);
@@ -141,6 +147,6 @@ void dataTask(void *arg){
 
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
   }
-}
+ }

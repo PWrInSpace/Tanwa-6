@@ -16,7 +16,7 @@ void buzzerTask(void *arg){
             int G2 = 3135;
 
             int delay1 = 200;
-            int delay2 = 500;
+            //int delay2 = 500;
             // // beepBoop(50, 1, SPEAKER);
             // beepBoop(20, 1, BUZZER);
             // ledcWriteTone(0, 3000);

@@ -5,6 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include <SPI.h>
 #include <Wire.h>
+#include "freertos/semphr.h"
 
 struct SoftwareToolsManagment{
   TaskHandle_t loraTask;
