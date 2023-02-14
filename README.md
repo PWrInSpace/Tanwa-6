@@ -21,3 +21,7 @@ As mentioned above, weight measurement is realized using tensiometers and Analog
 Tanwa+6 PWR: <br/>
 ![Tanwa+6-PWR-top](https://user-images.githubusercontent.com/73996991/218730126-32c9d85a-1818-4b0b-bf18-9d183dfd7f67.jpg)
 ![Tanwa+6-PWR-bottom](https://user-images.githubusercontent.com/73996991/218730170-09c0f262-360b-4437-b994-4e1889d97dfa.jpg)
+
+Responsibilities:
+COM - Jakub Zatoń
+PWR - Filip Kulisiewicz
