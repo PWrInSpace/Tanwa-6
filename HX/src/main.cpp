@@ -8,8 +8,7 @@
 
 SoftwareToolsManagment stm;
 // HX711
-HX711_api rckWeight;
-HX711_api tankWeight;
+HX711_api HxWeight;
 
 
 void setup() {
@@ -17,20 +16,20 @@ void setup() {
   Serial.begin(115200);
   pinInit();
   
-  stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
-  stm.i2c.setTimeOut(20);
-  stm.spi.begin();
+  //stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
+  //stm.i2c.setTimeOut(20);
 
-  stm.i2cMutex = xSemaphoreCreateMutex();
-  stm.spiMutex = xSemaphoreCreateMutex();
+
+  //stm.i2cMutex = xSemaphoreCreateMutex();
+
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
   xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
 
-  if(stm.spiMutex == NULL || stm.i2cMutex == NULL){
-    ESP.restart();
-  }
+  //if(stm.i2cMutex == NULL){
+    //ESP.restart();
+  //}
   
   vTaskDelete(NULL);
 

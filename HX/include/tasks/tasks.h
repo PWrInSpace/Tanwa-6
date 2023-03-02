@@ -7,9 +7,7 @@
 #include "../components/hx711_api.h"
 
 
-extern HX711_api rckWeight;
-extern HX711_api tankWeight;
-
+extern HX711_api HxWeight;
 //app_cpu
 void dataTask(void *arg);
 

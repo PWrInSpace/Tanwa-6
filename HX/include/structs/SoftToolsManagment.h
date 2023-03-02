@@ -7,15 +7,13 @@
 #include <Wire.h>
 
 struct SoftwareToolsManagment{
-  TaskHandle_t loraTask;
 
   TaskHandle_t dataTask;
 
-  SemaphoreHandle_t i2cMutex;
-  SemaphoreHandle_t spiMutex;
+  //SemaphoreHandle_t i2cMutex;
+ // SemaphoreHandle_t spiMutex;
 
-  TwoWire i2c = TwoWire(0);
-  SPIClass spi = SPIClass(VSPI);
+  //TwoWire i2c = TwoWire(0);
 };
 
 
