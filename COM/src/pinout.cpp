@@ -46,6 +46,7 @@ void pinInit()
 
     //RESET STM
     pinMode(RST, OUTPUT);
+    digitalWrite(RST, HIGH);
 
 
     //I2C

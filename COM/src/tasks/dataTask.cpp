@@ -49,7 +49,7 @@
 
 
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
-    expander.setPinPullUp(2,B,turnVar);
+    expander.setPin(2,B,turnVar);
     xSemaphoreGive(stm.i2cMutex);
 
 
@@ -88,30 +88,30 @@
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
-      // xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
       //TODO UNCOMMENT + change pin or solder correct pull up
-      // if(digitalRead(ABORT_ESP)==0){// ABORT BUTTON
-      //   abort_count++;
-      //   Serial.println("==================");
-      //   Serial.println("ABORT ++");
-      //   Serial.println("==================");
-      //   if(abort_count>=3){
-      //     xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      //     expander.setPinPullUp(1,B,ON);
-      //     xSemaphoreGive(stm.i2cMutex);
-      //     StateMachine::changeStateRequest(States::ABORT);
-      //     Serial.println("ABORT BUTTON CONFIRMATION");
-      //   }
-      // }
-      // else{
-      //   abort_count = 0;
-      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      //   expander.setPinPullUp(1,B,OFF);
-      //   xSemaphoreGive(stm.i2cMutex);
-      // }
+      if(!expander.getPin(0,B)){// ABORT BUTTON
+        abort_count++;
+        Serial.println("==================");
+        Serial.println("ABORT ++");
+        Serial.println("==================");
+        if(abort_count>=3){
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          expander.setPin(4,A,OFF);
+          xSemaphoreGive(stm.i2cMutex);
+          StateMachine::changeStateRequest(States::ABORT);
+          Serial.println("ABORT BUTTON CONFIRMATION");
+        }
+      }
+      else{
+        abort_count = 0;
+        xSemaphoreTake(stm.i2cMutex, pdTRUE);
+        expander.setPin(4,A,ON);
+        xSemaphoreGive(stm.i2cMutex);
+      }
        
 
-      // xSemaphoreGive(stm.i2cMutex);
+      xSemaphoreGive(stm.i2cMutex);
 
       // Serial.println("RESeeeeeeeeeeeeeeeET");
       // vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -124,6 +124,8 @@
     // xSemaphoreGive(stm.i2cMutex);
     
     Serial.println("\n\n\nCOM DATA:");
+    Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
+    Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
     Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
     Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
@@ -147,6 +149,7 @@
 
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
+    
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }
  }

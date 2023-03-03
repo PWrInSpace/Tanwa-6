@@ -32,37 +32,53 @@ void setup() {
   stm.spi.begin();
   //DEBUG
 //#######################################
-  // while(!expander.Init()){
-  //   vTaskDelay(500);
-  //   Serial.println("Not connected!1");
-  // }
+  while(!expander.Init()){
+    vTaskDelay(500);
+    Serial.println("Not connected!1");
+    expander.softReset();
+  }
 
-  //   if(!expander.Init())
-  //     Serial.println("Not connected!");
+    if(!expander.Init())
+      Serial.println("Not connected!");
 
-  //   else{
+    else{
   
-  //     expander.softReset(); //WARNING - EXPANDER ON SECOND PCB NEEDED THIS!!!!!! CHECK BEHAVIOUR FOR 1ST ONE
+      expander.softReset(); //WARNING - EXPANDER ON SECOND PCB NEEDED THIS!!!!!! CHECK BEHAVIOUR FOR 1ST ONE
 
-  //     Serial.println("CONNECTED");
+      Serial.println("CONNECTED");
 
 
-  //     expander.setPinX(0,B,INPUT,ON); //input for abort button
-  //     expander.setPinX(7,A,INPUT,ON); //input for SD card connection check
+    expander.setPinX(0,B,INPUT,ON); //input for abort button
+    expander.setPinX(7,A,INPUT,ON); //input for SD card connection check
 
-  //   // all leds off
-  //     expander.setPinPullUp(1,B,OFF);// LED1
-  //     expander.setPinPullUp(2,B,OFF);// LED2
-  //     expander.setPinPullUp(3,B,OFF);// LED3
-  //     expander.setPinPullUp(4,B,OFF);// LED4
-  //     expander.setPinPullUp(5,B,OFF);// LED5
-  //     expander.setPinPullUp(6,B,OFF);// LED6
-  //     expander.setPinPullUp(7,B,OFF);// LED7
-  //     expander.setPinPullUp(6,A,OFF);// LED8
-  //     expander.setPinPullUp(5,A,OFF);// LED9
-  //     expander.setPinPullUp(4,A,OFF);// LED10
+    // all leds off
+    expander.setPinX(1,B,OUTPUT, OFF);
+    expander.setPinX(2,B,OUTPUT, ON);
+    expander.setPinX(3,B,OUTPUT, ON);
+    expander.setPinX(4,B,OUTPUT, OFF);
+    expander.setPinX(5,B,OUTPUT, ON);
+    expander.setPinX(6,B,OUTPUT, ON);
+    expander.setPinX(7,B,OUTPUT, ON);
+    expander.setPinX(6,A,OUTPUT, ON);
+    expander.setPinX(5,A,OUTPUT, ON);
+    expander.setPinX(4,A,OUTPUT, ON);
+      // expander.setPinPullUp(1,B,ON);// LED1
+      // expander.setPinPullUp(2,B,OFF);// LED2
+      // expander.setPinPullUp(3,B,OFF);// LED3
+      // expander.setPinPullUp(4,B,OFF);// LED4
+      // expander.setPinPullUp(5,B,OFF);// LED5
+      // expander.setPinPullUp(6,B,OFF);// LED6
+      // expander.setPinPullUp(7,B,OFF);// LED7
+      // expander.setPinPullUp(6,A,OFF);// LED8
+      // expander.setPinPullUp(5,A,ON);// LED9
+      // expander.setPinPullUp(4,A,OFF);// LED10
 
-  //   }
+
+
+    }
+
+
+   
   
  //############################
   nowInit();
