@@ -1,7 +1,10 @@
  #include "../include/tasks/tasks.h"
+#include <EEPROM.h>
 
  char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
+
+ extern float temp_cal_factor;
 
  void dataTask(void *arg){
   uint32_t abort_count = 0;
@@ -14,8 +17,19 @@
   rckWeight.begin(HX1_SDA, HX1_SCL);
   //rckWeight.set_gain(128);
   //rckWeight.wait_ready_timeout(); 
-  rckWeight.set_scale(BIT_TO_GRAM_RATIO_RCK);
-  // rckWeight.set_offset(OFFSET_RCK);
+  rckWeight.set_scale(temp_cal_factor);
+  
+
+  Serial.print("ROCKET CAL FAC  "); Serial.println(rckWeight.get_scale(),3);
+ 
+  rckWeight.tare();
+  Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
+  int dd = rckWeight.get_scale() * 1000; // TODO 1000 = last saved measurement! from SD
+  rckWeight.set_offset(rckWeight.get_offset()-dd);
+
+  vTaskDelay(3000 / portTICK_PERIOD_MS);
+
+
 
   tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
   //tankWeight.set_gain(128);
@@ -32,6 +46,9 @@
   {
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
+
+
+
 
 
 
@@ -59,11 +76,11 @@
       turnVar = 1;
 
     
-    dataFrame.tankWeight = tankWeight.get_units(1);
-    dataFrame.tankWeightRaw = (uint32_t) tankWeight.get_value(1);
+    dataFrame.tankWeight = tankWeight.get_units(10);
+    dataFrame.tankWeightRaw = (uint32_t) tankWeight.get_value(10);
     
-    dataFrame.rocketWeight = rckWeight.get_units(1);
-    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(1);
+    dataFrame.rocketWeight = rckWeight.get_units(10);
+    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
     
 
     dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
@@ -91,17 +108,55 @@
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
       //TODO UNCOMMENT + change pin or solder correct pull up
       if(!expander.getPin(0,B)){// ABORT BUTTON
-        abort_count++;
-        Serial.println("==================");
-        Serial.println("ABORT ++");
-        Serial.println("==================");
-        if(abort_count>=3){
-          xSemaphoreTake(stm.i2cMutex, pdTRUE);
-          expander.setPin(4,A,OFF);
-          xSemaphoreGive(stm.i2cMutex);
-          StateMachine::changeStateRequest(States::ABORT);
-          Serial.println("ABORT BUTTON CONFIRMATION");
+      //################### real abort content ###################
+        // abort_count++;
+        // Serial.println("==================");
+        // Serial.println("ABORT ++");
+        // Serial.println("==================");
+        // if(abort_count>=3){
+        //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+        //   expander.setPin(4,A,OFF);
+        //   xSemaphoreGive(stm.i2cMutex);
+        //   StateMachine::changeStateRequest(States::ABORT);
+        //   Serial.println("ABORT BUTTON CONFIRMATION");
+        //}
+        //##########################################################
+        //DEBUG
+        float temp_cal_factor2;
+        temp_cal_factor2 = rckWeight.calibration(1000);
+        
+        Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+        int x_temp = 0, y_temp = 0;
+        
+        temp_cal_factor2 = temp_cal_factor2*1000;
+          
+        //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
+        if(abs(temp_cal_factor2)<=99999){    
+          int tab[6];
+          if(temp_cal_factor2<0)
+            tab[5] = 1;
+          else
+            tab[5] = 0;
+          for (int i=0; i<5; i++){
+            x_temp=abs(temp_cal_factor2)/10;
+            tab[i] = abs(temp_cal_factor2) - 10*x_temp;
+            temp_cal_factor2 = x_temp;
+            Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
+            EEPROM.write(i, tab[i]);
+            EEPROM.commit();
+          } 
+          Serial.println("is negative: "); Serial.println(tab[5]);
+          EEPROM.write(5, tab[5]);
+          EEPROM.commit();
         }
+
+        vTaskDelay(5000 / portTICK_PERIOD_MS); 
+
+
+        
+        
       }
       else{
         abort_count = 0;
@@ -144,6 +199,8 @@
 
     Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
     Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
+    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
+    Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
     Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
 

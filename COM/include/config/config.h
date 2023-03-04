@@ -59,4 +59,7 @@ static String dataFileName= "/data_";
 //Expander 
 #define MCP_ADDRESS 0x20 
 
+//EEPROM
+#define EEPROM_SIZE 50
+
 #endif

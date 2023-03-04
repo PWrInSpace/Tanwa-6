@@ -7,6 +7,7 @@
 #include "../include/com/now.h"
 #include <esp_wifi.h>
 #include <MCP23017.h>
+#include <EEPROM.h>
 
 SoftwareToolsManagment stm;
 InternalI2C<PWRData, TxData> pwrCom(&stm.i2c, COM_ADRESS);
@@ -16,13 +17,36 @@ HX711_api tankWeight;
 
 MCP23017 expander = MCP23017(&stm.i2c,MCP_ADDRESS,RST);
 
+float temp_cal_factor;
+
 void setup() {
 
   Serial.begin(115200);
   pinInit();
 
- WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
+
+  EEPROM.begin(EEPROM_SIZE);
+  
+  int eeprom_temp_tab[6];
+
+  for (int i = 0; i<6; i++){
+    eeprom_temp_tab[i] = EEPROM.read(i);
+    //Serial.print("EEPROM TAB  "); Serial.println(eeprom_temp_tab[i]);
+  }
+
+
+  temp_cal_factor =(10*eeprom_temp_tab[4]+1*eeprom_temp_tab[3]+0.1*eeprom_temp_tab[2]+0.01*eeprom_temp_tab[1] + 0.001*eeprom_temp_tab[0]);
+
+  if(eeprom_temp_tab[5]==1)
+    temp_cal_factor = temp_cal_factor *(-1);
+
+
+  Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
+  
+  
+   vTaskDelay(1000 / portTICK_PERIOD_MS);
 
   //ledcSetup(0,2000,8);// PWM FOR BUZZER
  // ledcAttachPin(BUZZER, 0);

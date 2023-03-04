@@ -7,7 +7,7 @@ class HX711_api: public HX711{
 
     public:
 
-    void calibration(int known_mass);
+    float calibration(int known_mass);
 };
 
 #endif
