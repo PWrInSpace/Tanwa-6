@@ -37,8 +37,8 @@ bool SDCard::write(String path, const String & dataFrame){
     return true;
 }
 
-bool SDCard::write(String path, char *dataFrame){
-    File file = SD.open(path, "a");  
+bool SDCard::write(String path, char *dataFrame, char* mode){
+    File file = SD.open(path, mode);  
     if(!file){
       Serial.print("Open error: ");
       Serial.println(path);

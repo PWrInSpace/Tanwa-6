@@ -81,6 +81,9 @@
     
     dataFrame.rocketWeight = rckWeight.get_units(10);
     dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
+
+    snprintf(data, sizeof(data), "%0.2f", dataFrame.rocketWeight);
+    xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
     dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
