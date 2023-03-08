@@ -59,6 +59,40 @@ bool SDCard::write(String path, char *dataFrame, char* mode){
     return true;
 }
 
+
+
+
+
+///
+uint8_t SDCard::read(String path, char* mode){
+    uint8_t buff;
+    File file = SD.open(path, mode);  
+    if(!file){
+      Serial.print("Open error: ");
+      Serial.println(path);
+      return false;
+    }
+    
+    if(file) {
+        if(!(buff=file.read())) {
+            file.close();
+            return false;
+        }
+    }else {
+        return false;
+    }
+    
+    file.close();
+
+    return buff;
+}
+
+
+
+
+
+
+
 bool SDCard::fileExists(String path){
   return SD.exists(path);
 }

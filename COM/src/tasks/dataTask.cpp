@@ -82,7 +82,8 @@
     dataFrame.rocketWeight = rckWeight.get_units(10);
     dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
 
-    snprintf(data, sizeof(data), "%0.2f", dataFrame.rocketWeight);
+    snprintf(data, sizeof(data), "%d",(int) (dataFrame.rocketWeight*100));
+    Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
@@ -210,6 +211,6 @@
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
-    vTaskDelay(500 / portTICK_PERIOD_MS); 
+    vTaskDelay(5000 / portTICK_PERIOD_MS); 
   }
  }

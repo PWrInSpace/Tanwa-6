@@ -20,6 +20,7 @@ void sdTask(void *arg){
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     xSemaphoreTake(stm.spiMutex, portMAX_DELAY);
   }
+  
 
   while(mySD.fileExists(dataPath + String(sd_i) + ".txt")){
     sd_i++;
@@ -27,10 +28,15 @@ void sdTask(void *arg){
   dataPath = dataPath + String(sd_i) + ".txt";
 
 
-   while(mySD.fileExists(dataPath_lastWeight + String(sd_j) + ".txt")){
+
+  while(mySD.fileExists(dataPath_lastWeight + String(sd_j) + ".txt")){
     sd_j++;
   }
+  Serial.print("SD path == "); Serial.println(dataPath_lastWeight + String(sd_j-1) + ".txt");
+
+  Serial.print("SD READ LAST VALUE == "); Serial.println((float)(mySD.read(dataPath_lastWeight + String(sd_j-1) + ".txt","r")/100));
   dataPath_lastWeight = dataPath_lastWeight + String(sd_j) + ".txt";
+   vTaskDelay(2000 / portTICK_PERIOD_MS);
 
   xSemaphoreGive(stm.spiMutex);
 
