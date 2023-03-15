@@ -44,6 +44,16 @@ struct RxStruct{
     uint16_t CommandArgument;
 };
 
+CAN_TxHeaderTypeDef TxHeader;
+uint32_t TxMailbox;
+
+CAN_RxHeaderTypeDef RxHeader;
+
+
+
+
+//CAN_RxHeaderTypeDef;
+
 TxStruct txStruct = {0,0,{0,0,0,0},{1,1,1}};
 RxStruct rxStruct = {0,0};
 const uint16_t rxBufferLenght = 10;
@@ -159,6 +169,15 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_CAN_Start(&hcan);
+  HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
+
+  TxHeader.DLC = 12; //data length
+  TxHeader.IDE = CAN_ID_STD;
+  TxHeader.StdId = 0x103;
+  TxHeader.RTR = CAN_RTR_DATA;
+
   HAL_Delay(50);
   ValveList.push_back({new Solenoid(Sol1Dir_GPIO_Port, Sol1Dir_Pin), ValveStateIDK});
   ValveList.push_back({new Solenoid(Sol2Dir_GPIO_Port, Sol2Dir_Pin), ValveStateIDK});
@@ -323,10 +342,10 @@ static void MX_CAN_Init(void)
 
   /* USER CODE END CAN_Init 1 */
   hcan.Instance = CAN1;
-  hcan.Init.Prescaler = 16;
+  hcan.Init.Prescaler = 4;
   hcan.Init.Mode = CAN_MODE_NORMAL;
   hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan.Init.TimeSeg1 = CAN_BS1_1TQ;
+  hcan.Init.TimeSeg1 = CAN_BS1_2TQ;
   hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
   hcan.Init.TimeTriggeredMode = DISABLE;
   hcan.Init.AutoBusOff = DISABLE;
@@ -339,7 +358,20 @@ static void MX_CAN_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN_Init 2 */
+  CAN_FilterTypeDef canfilterconfig;
 
+  canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
+  canfilterconfig.FilterBank = 10;  // which filter bank to use from the assigned ones
+  canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
+  canfilterconfig.FilterIdHigh = 0x446<<5;
+  canfilterconfig.FilterIdLow = 0;
+  canfilterconfig.FilterMaskIdHigh = 0x446<<5;
+  canfilterconfig.FilterMaskIdLow = 0x0000;
+  canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
+  canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
+  canfilterconfig.SlaveStartFilterBank = 20;  // how many filters to assign to the CAN1 (master can)
+
+  HAL_CAN_ConfigFilter(&hcan, &canfilterconfig);
   /* USER CODE END CAN_Init 2 */
 
 }
@@ -690,6 +722,16 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 		xQueueSendFromISR(rxQueue, &rxStruct, NULL);
 	}
 	HAL_I2C_EnableListen_IT(hi2c);
+}
+
+void HAL_CAN_RxFifo1MsgPEndingCallback(CAN_HandleTypeDef *hcan){
+	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader, (uint8_t*)&rxStruct);
+	if(RxHeader.DLC == 3){
+		xQueueSendFromISR(rxQueue, &rxStruct, NULL);
+	}
+	else{  //TODO data request specification
+		HAL_CAN_AddTxMessage(hcan, &TxHeader, (uint8_t*)&txStruct, &TxMailbox);
+	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //ToDo change to loop
