@@ -1,4 +1,5 @@
 #include "../include/tasks/tasks.h"
+float lastWeight = 0;
 
 void sdTask(void *arg){
   //TanWaControl * tc = static_cast<TanWaControl*>(arg);
@@ -34,9 +35,15 @@ void sdTask(void *arg){
   }
   Serial.print("SD path == "); Serial.println(dataPath_lastWeight + String(sd_j-1) + ".txt");
 
-  Serial.print("SD READ LAST VALUE == "); Serial.println((float)(mySD.read(dataPath_lastWeight + String(sd_j-1) + ".txt","r")/100));
+  File file = SD.open(dataPath_lastWeight + String(sd_j-1) + ".txt", FILE_READ);
+  String data2 = file.readStringUntil(';');
+  Serial.println(data2.toFloat());
+  file.close();
+  lastWeight = data2.toFloat();
+  xTaskNotifyGive(stm.dataTask);
+  
   dataPath_lastWeight = dataPath_lastWeight + String(sd_j) + ".txt";
-   vTaskDelay(2000 / portTICK_PERIOD_MS);
+  vTaskDelay(2000 / portTICK_PERIOD_MS);
 
   xSemaphoreGive(stm.spiMutex);
 
@@ -61,6 +68,7 @@ void sdTask(void *arg){
       
       xSemaphoreTake(stm.spiMutex, portMAX_DELAY);  
 
+      strcat(data, ";");
       if(!mySD.write(dataPath_lastWeight, data, "w")){
         //SD_WRITE_ERROR
       }

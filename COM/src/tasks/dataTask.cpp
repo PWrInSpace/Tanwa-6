@@ -5,6 +5,7 @@
  PWRData pwrData;
 
  extern float temp_cal_factor;
+ extern float lastWeight;
 
  void dataTask(void *arg){
   uint32_t abort_count = 0;
@@ -24,7 +25,9 @@
  
   rckWeight.tare();
   Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
-  int dd = rckWeight.get_scale() * 1000; // TODO 1000 = last saved measurement! from SD
+
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+  int dd = rckWeight.get_scale() * lastWeight; // TODO 1000 = last saved measurement! from SD
   rckWeight.set_offset(rckWeight.get_offset()-dd);
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
@@ -82,7 +85,7 @@
     dataFrame.rocketWeight = rckWeight.get_units(10);
     dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
 
-    snprintf(data, sizeof(data), "%d",(int) (dataFrame.rocketWeight*100));
+    snprintf(data, sizeof(data), "%.2f", dataFrame.rocketWeight);
     Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
@@ -211,6 +214,6 @@
   
     esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
-    vTaskDelay(5000 / portTICK_PERIOD_MS); 
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
   }
  }
