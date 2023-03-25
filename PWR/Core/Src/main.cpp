@@ -28,6 +28,7 @@
 #include<vector>
 #include<tuple>
 #include<queue.h>
+#include<semphr.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,10 +50,7 @@ uint32_t TxMailbox;
 
 CAN_RxHeaderTypeDef RxHeader;
 
-
-
-
-//CAN_RxHeaderTypeDef;
+SemaphoreHandle_t txStructMutex;
 
 TxStruct txStruct = {0,0,{0,0,0,0},{1,1,1}};
 RxStruct rxStruct = {0,0};
@@ -177,6 +175,12 @@ int main(void)
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x103;
   TxHeader.RTR = CAN_RTR_DATA;
+
+  txStructMutex = xSemaphoreCreateMutex();
+
+  if (txStructMutex == NULL){
+	  //TODO Error flags
+  }
 
   HAL_Delay(50);
   ValveList.push_back({new Solenoid(Sol1Dir_GPIO_Port, Sol1Dir_Pin), ValveStateIDK});
@@ -715,7 +719,9 @@ void handleRxStruct(RxStruct rxStruct){
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode){
 	HAL_I2C_DisableListen_IT(hi2c);
 	if(!TransferDirection) {
+		xSemaphoreTake(txStructMutex, 5000);
 		HAL_I2C_Slave_Transmit(hi2c, (uint8_t*)&txStruct, sizeof(TxStruct), 5);
+		xSemaphoreGive(txStructMutex);
 	}
 	else{
 		HAL_I2C_Slave_Receive(hi2c, (uint8_t*)&rxStruct, sizeof(RxStruct), 50);
@@ -730,7 +736,9 @@ void HAL_CAN_RxFifo1MsgPEndingCallback(CAN_HandleTypeDef *hcan){
 		xQueueSendFromISR(rxQueue, &rxStruct, NULL);
 	}
 	else{  //TODO data request specification
+		xSemaphoreTake(txStructMutex, 5000);
 		HAL_CAN_AddTxMessage(hcan, &TxHeader, (uint8_t*)&txStruct, &TxMailbox);
+		xSemaphoreGive(txStructMutex);
 	}
 }
 
@@ -845,6 +853,7 @@ void TaskMeasure(void *argument)
 	bool tick = false;
 	/* Infinite loop */
 	while(true){
+		xSemaphoreTake(txStructMutex, 5000);
 		tick = !tick;
 		txStruct = {
 			tick,
@@ -861,6 +870,7 @@ void TaskMeasure(void *argument)
 				ADCData[2]	//Solenoid 2 ADC
 			}
 		};
+		xSemaphoreGive(txStructMutex);
 		osDelay(500);
 	}
   /* USER CODE END TaskMeasure */
