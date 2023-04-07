@@ -9,6 +9,7 @@
 
 struct SoftwareToolsManagment{
   TaskHandle_t loraTask;
+  TaskHandle_t canTask;
 
   TaskHandle_t sdTask;
   TaskHandle_t dataTask;

@@ -48,7 +48,10 @@
 #define TX 1
 #define RX 3
 
-#define ABORT_ESP 16
+#define CAN_TX 16
+#define CAN_RX 17
+
+// #define ABORT_ESP 16
 
 #define BOOT 0 //????????
 

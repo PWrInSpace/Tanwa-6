@@ -5,6 +5,7 @@
 #include <esp_wifi.h>
 #include "../include/com/now.h"
 #include <EEPROM.h>
+#include <CAN.h>
 //TODO delete one hx - due to single hx on board at individual hx interface
 
 SoftwareToolsManagment stm;
@@ -16,6 +17,11 @@ void setup() {
 
   Serial.begin(115200);
   pinInit();
+    CAN.setPins(CAN_RX, CAN_TX);
+  if (!CAN.begin(500E3)) {
+    Serial.println("Starting CAN failed!");
+    while (1);
+  }
 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
@@ -58,7 +64,8 @@ void setup() {
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
-  xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  //xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
 
   //if(stm.i2cMutex == NULL){
     //ESP.restart();

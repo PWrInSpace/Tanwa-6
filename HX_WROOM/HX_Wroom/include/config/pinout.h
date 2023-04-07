@@ -9,9 +9,9 @@
 #define HX_SCL 2
 
 #define CALIBRATION_PIN 13
-
-#define TX 16
-#define RX 17
+//CROSS!!!!!!!!!
+#define CAN_TX 17
+#define CAN_RX 16
 
 #define BOOT 0 //????????
 

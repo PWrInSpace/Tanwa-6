@@ -26,6 +26,12 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
+ CAN.setPins(CAN_RX, CAN_TX);
+  if (!CAN.begin(500E3)) {
+    Serial.println("Starting CAN failed!");
+    while (1);
+  }
+ 
 
   // EEPROM.begin(EEPROM_SIZE);
   
@@ -125,10 +131,12 @@ void setup() {
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
+
+ xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
-  xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
-  xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  //xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
+  //xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
+ // xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 20000, NULL, 1, &stm.buzzerTask, APP_CPU_NUM);
 

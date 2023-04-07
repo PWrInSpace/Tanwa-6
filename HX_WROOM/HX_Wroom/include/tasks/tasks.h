@@ -6,11 +6,13 @@
 #include "../config/config.h"
 #include "../components/hx711_api.h"
 #include "../com/now.h"
+#include <CAN.h>
 
 
 extern HX711_api HxWeight;
 //app_cpu
 void dataTask(void *arg);
+void canTask(void *arg);
 
 
 #endif

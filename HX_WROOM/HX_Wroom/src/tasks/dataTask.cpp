@@ -1,6 +1,6 @@
 #include "../include/tasks/tasks.h"
 #include <EEPROM.h>
- char data[256] = {};
+char data[256] = {};
 extern float temp_cal_factor;
 
 void dataTask(void *arg){
