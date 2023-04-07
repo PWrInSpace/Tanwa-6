@@ -27,23 +27,23 @@ void setup() {
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
 
-  EEPROM.begin(EEPROM_SIZE);
+  // EEPROM.begin(EEPROM_SIZE);
   
-  int eeprom_temp_tab[6];
+  // int eeprom_temp_tab[6];
 
-  for (int i = 0; i<6; i++){
-    eeprom_temp_tab[i] = EEPROM.read(i);
-    //Serial.print("EEPROM TAB  "); Serial.println(eeprom_temp_tab[i]);
-  }
-
-
-  temp_cal_factor =(10*eeprom_temp_tab[4]+1*eeprom_temp_tab[3]+0.1*eeprom_temp_tab[2]+0.01*eeprom_temp_tab[1] + 0.001*eeprom_temp_tab[0]);
-
-  if(eeprom_temp_tab[5]==1)
-    temp_cal_factor = temp_cal_factor *(-1);
+  // for (int i = 0; i<6; i++){
+  //   eeprom_temp_tab[i] = EEPROM.read(i);
+  //   //Serial.print("EEPROM TAB  "); Serial.println(eeprom_temp_tab[i]);
+  // }
 
 
-  Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
+  // temp_cal_factor =(10*eeprom_temp_tab[4]+1*eeprom_temp_tab[3]+0.1*eeprom_temp_tab[2]+0.01*eeprom_temp_tab[1] + 0.001*eeprom_temp_tab[0]);
+
+  // if(eeprom_temp_tab[5]==1)
+  //   temp_cal_factor = temp_cal_factor *(-1);
+
+
+  // Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
   
   
    vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -106,7 +106,8 @@ void setup() {
   
  //############################
   nowInit();
-  nowAddPeer(adressObc, 0);
+  // nowAddPeer(adressObc, 0);
+  nowAddPeer(adressHxRck, 0);
   //ledcWriteTone(0, 1000);
  // ledcWrite(0, 255);
  // vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -116,7 +117,8 @@ void setup() {
   stm.sdQueue_lastWeight = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
   stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(char[LORA_TX_FRAME_SIZE]));
   stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(char[LORA_RX_FRAME_SIZE]));
-  stm.espNowRxQueue = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
+  // stm.espNowRxQueue = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
+  stm.espNowRxQueue = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(RxData));
 
   stm.i2cMutex = xSemaphoreCreateMutex();
   stm.spiMutex = xSemaphoreCreateMutex();
@@ -124,7 +126,7 @@ void setup() {
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
  // xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
- // xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
   xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);

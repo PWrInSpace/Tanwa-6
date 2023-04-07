@@ -56,67 +56,78 @@ FrameStates resolveOption(string input) {
 
 void rxHandlingTask(void* arg){
   TxData espNowCommand;
+  RxData espNowData;
   char loraRx[LORA_RX_FRAME_SIZE];
 
   while(1){
-
+    // Serial.println("RX TASK");
     //ESPNOW
-    if(xQueueReceive(stm.espNowRxQueue, (void*)&espNowCommand, 0) == pdTRUE){
+    // if(xQueueReceive(stm.espNowRxQueue, (void*)&espNowCommand, 0) == pdTRUE){
+    //   Serial.print("ESP NOW: ");
+    //   Serial.println(espNowCommand.command);
+    //   Serial.println(espNowCommand.commandValue);
+
+    //   switch(espNowCommand.command){
+    //     case PLSS_:
+    //       if(xQueueSend(stm.loraTxQueue, (void*)data, 0) == pdTRUE){
+    //         Serial.print("ESP NOW SEND VIA LORA: ");
+    //         // Serial.println(data);
+    //       }
+    //       break;
+
+    //     case IGNITER:
+    //       digitalWrite(FIRE1, HIGH);
+    //       digitalWrite(FIRE2, HIGH);
+    //       break;
+
+    //     case TARE_RCK:
+    //       rckWeight.tare();
+    //       break;
+        
+    //     case CALIBRATE_RCK:
+    //       rckWeight.calibration(espNowCommand.commandValue);
+    //       break;
+
+    //     case TARE_TANK:
+    //       tankWeight.tare();
+    //       break;
+
+    //     case CALIBRATE_TANK:
+    //       tankWeight.calibration(espNowCommand.commandValue);
+    //       break;
+
+    //     case SOFT_ARM:
+    //       digitalWrite(ARM_PIN, HIGH);
+    //       break;
+
+    //     case SOFT_DISARM:
+    //       digitalWrite(ARM_PIN, LOW);
+    //       break;
+        
+    //     case SOFT_RESTART:
+    //       //RESET ESP COMMAND
+    //       ESP.restart();
+    //       //RESET STM
+    //       // pwrCom.sendCommandMotor(0, RESET_COMMAND);
+    //       break;
+
+    //     default:
+    //       xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    //       pwrCom.sendCommand(&espNowCommand);
+    //       xSemaphoreGive(stm.i2cMutex);
+    //       break;
+    //   }
+    // }
+
+
+     if(xQueueReceive(stm.espNowRxQueue, (void*)&espNowData, 0) == pdTRUE){
+
       Serial.print("ESP NOW: ");
-      Serial.println(espNowCommand.command);
-      Serial.println(espNowCommand.commandValue);
+      Serial.print("WEIGHT:   ");Serial.println(espNowData.weight);
+      Serial.print("WEIGHT RAW:   ");Serial.println(espNowData.weight_raw);
+      Serial.print("TEMP:   ");Serial.println(espNowData.temperature);
+     }
 
-      switch(espNowCommand.command){
-        case PLSS_:
-          if(xQueueSend(stm.loraTxQueue, (void*)data, 0) == pdTRUE){
-            Serial.print("ESP NOW SEND VIA LORA: ");
-            // Serial.println(data);
-          }
-          break;
-
-        case IGNITER:
-          digitalWrite(FIRE1, HIGH);
-          digitalWrite(FIRE2, HIGH);
-          break;
-
-        case TARE_RCK:
-          rckWeight.tare();
-          break;
-        
-        case CALIBRATE_RCK:
-          rckWeight.calibration(espNowCommand.commandValue);
-          break;
-
-        case TARE_TANK:
-          tankWeight.tare();
-          break;
-
-        case CALIBRATE_TANK:
-          tankWeight.calibration(espNowCommand.commandValue);
-          break;
-
-        case SOFT_ARM:
-          digitalWrite(ARM_PIN, HIGH);
-          break;
-
-        case SOFT_DISARM:
-          digitalWrite(ARM_PIN, LOW);
-          break;
-        
-        case SOFT_RESTART:
-          //RESET ESP COMMAND
-          ESP.restart();
-          //RESET STM
-          // pwrCom.sendCommandMotor(0, RESET_COMMAND);
-          break;
-
-        default:
-          xSemaphoreTake(stm.i2cMutex, pdTRUE);
-          pwrCom.sendCommand(&espNowCommand);
-          xSemaphoreGive(stm.i2cMutex);
-          break;
-      }
-    }
 
     //LORA 
     if(xQueueReceive(stm.loraRxQueue, (void*)&loraRx, 0) == pdTRUE){

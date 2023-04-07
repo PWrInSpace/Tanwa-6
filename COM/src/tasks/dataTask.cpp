@@ -40,7 +40,7 @@
   tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
   // tankWeight.set_offset(OFFSET_TANK);
 ;
-  // while (tankWeight.wait_ready_retry() && rckWeight.wait_ready_retry())
+  // while (!tankWeight.wait_ready_retry() && !rckWeight.wait_ready_retry())
   // {
   //   vTaskDelay(1000 / portTICK_PERIOD_MS);
   // }
@@ -86,7 +86,7 @@
     dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
 
     snprintf(data, sizeof(data), "%.2f", dataFrame.rocketWeight);
-    Serial.print("DATA TO BE SAVED: "); Serial.println(data);
+    // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
@@ -115,51 +115,51 @@
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
       //TODO UNCOMMENT + change pin or solder correct pull up
       if(!expander.getPin(0,B)){// ABORT BUTTON
-      //################### real abort content ###################
-        // abort_count++;
-        // Serial.println("==================");
-        // Serial.println("ABORT ++");
-        // Serial.println("==================");
-        // if(abort_count>=3){
-        //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-        //   expander.setPin(4,A,OFF);
-        //   xSemaphoreGive(stm.i2cMutex);
-        //   StateMachine::changeStateRequest(States::ABORT);
-        //   Serial.println("ABORT BUTTON CONFIRMATION");
-        //}
-        //##########################################################
-        //DEBUG
-        float temp_cal_factor2;
-        temp_cal_factor2 = rckWeight.calibration(1000);
+      // //################### real abort content ###################
+      //   // abort_count++;
+      //   // Serial.println("==================");
+      //   // Serial.println("ABORT ++");
+      //   // Serial.println("==================");
+      //   // if(abort_count>=3){
+      //   //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      //   //   expander.setPin(4,A,OFF);
+      //   //   xSemaphoreGive(stm.i2cMutex);
+      //   //   StateMachine::changeStateRequest(States::ABORT);
+      //   //   Serial.println("ABORT BUTTON CONFIRMATION");
+      //   //}
+      //   //##########################################################
+      //   //DEBUG
+      //   float temp_cal_factor2;
+      //   temp_cal_factor2 = rckWeight.calibration(1000);
         
-        Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+      //   Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
+      //   vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-        int x_temp = 0, y_temp = 0;
+      //   int x_temp = 0, y_temp = 0;
         
-        temp_cal_factor2 = temp_cal_factor2*1000;
+      //   temp_cal_factor2 = temp_cal_factor2*1000;
           
-        //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
-        if(abs(temp_cal_factor2)<=99999){    
-          int tab[6];
-          if(temp_cal_factor2<0)
-            tab[5] = 1;
-          else
-            tab[5] = 0;
-          for (int i=0; i<5; i++){
-            x_temp=abs(temp_cal_factor2)/10;
-            tab[i] = abs(temp_cal_factor2) - 10*x_temp;
-            temp_cal_factor2 = x_temp;
-            Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
-            EEPROM.write(i, tab[i]);
-            EEPROM.commit();
-          } 
-          Serial.println("is negative: "); Serial.println(tab[5]);
-          EEPROM.write(5, tab[5]);
-          EEPROM.commit();
-        }
+      //   //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
+      //   if(abs(temp_cal_factor2)<=99999){    
+      //     int tab[6];
+      //     if(temp_cal_factor2<0)
+      //       tab[5] = 1;
+      //     else
+      //       tab[5] = 0;
+      //     for (int i=0; i<5; i++){
+      //       x_temp=abs(temp_cal_factor2)/10;
+      //       tab[i] = abs(temp_cal_factor2) - 10*x_temp;
+      //       temp_cal_factor2 = x_temp;
+      //       Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
+      //       EEPROM.write(i, tab[i]);
+      //       EEPROM.commit();
+      //     } 
+      //     Serial.println("is negative: "); Serial.println(tab[5]);
+      //     EEPROM.write(5, tab[5]);
+      //     EEPROM.commit();
+      //   }
 
-        vTaskDelay(5000 / portTICK_PERIOD_MS); 
+      //   vTaskDelay(5000 / portTICK_PERIOD_MS); 
 
 
         
@@ -185,34 +185,34 @@
     // i2cCOM.getData(&pwrData);
     // xSemaphoreGive(stm.i2cMutex);
     
-    Serial.println("\n\n\nCOM DATA:");
-    Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
-    Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
-    Serial.print("BLINK: "); Serial.println(pwrData.tick);
-    Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
-    Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
-    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
-    Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
-    Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
-    Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
+    // Serial.println("\n\n\nCOM DATA:");
+    // Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
+    // Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
+    // Serial.print("BLINK: "); Serial.println(pwrData.tick);
+    // Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
+    // Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
+    // Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
+    // Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
+    // Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
+    // Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
     
 
-    Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
+    // Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
-    dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
-    Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
-    Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
+    // dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
+    // Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
+    // Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
  
 
-    Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
-    Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
-    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
-    Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
-    Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
-    Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
+    // Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
+    // Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
+    // Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
+    // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
+    // Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
+    // Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
 
   
-    esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
+    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }

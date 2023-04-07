@@ -19,6 +19,13 @@ struct TxData{
   uint16_t commandValue;
 };
 
+
+struct RxData{
+  float weight;
+  uint32_t weight_raw;
+  float temperature;
+};
+
 struct PWRData{
   bool tick = {};
   uint8_t lastDoneCommandNum = {};

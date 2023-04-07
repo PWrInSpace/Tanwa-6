@@ -4,7 +4,7 @@ void dataTask(void *arg){
 
   uint16_t HxWeight_raw;
   uint16_t HxWeight_unit;
-
+ Serial.print("ROCKET WEIGHT: ");
     //HX711
   HxWeight.begin(HX_SDA, HX_SCL);
   //HxWeight.set_gain(128);
