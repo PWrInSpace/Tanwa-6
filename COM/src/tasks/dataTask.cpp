@@ -174,7 +174,10 @@
        
 
       xSemaphoreGive(stm.i2cMutex);
+      // canSend();
 
+
+      
       // Serial.println("RESeeeeeeeeeeeeeeeET");
       // vTaskDelay(5000 / portTICK_PERIOD_MS);
       // xSemaphoreTake(stm.i2cMutex, pdTRUE);

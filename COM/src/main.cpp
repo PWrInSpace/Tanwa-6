@@ -5,6 +5,7 @@
 #include "../include/structs/SoftToolsManagment.h"
 #include "../include/structs/commStructs.h"
 #include "../include/com/now.h"
+#include "../include/com/can.h"
 #include <esp_wifi.h>
 #include <MCP23017.h>
 #include <EEPROM.h>
@@ -26,11 +27,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
- CAN.setPins(CAN_RX, CAN_TX);
-  if (!CAN.begin(500E3)) {
-    Serial.println("Starting CAN failed!");
-    while (1);
-  }
+ 
  
 
   // EEPROM.begin(EEPROM_SIZE);
@@ -114,6 +111,9 @@ void setup() {
   nowInit();
   // nowAddPeer(adressObc, 0);
   nowAddPeer(adressHxRck, 0);
+  canInit();
+
+
   //ledcWriteTone(0, 1000);
  // ledcWrite(0, 255);
  // vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -132,11 +132,11 @@ void setup() {
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
 
- xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
+//  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
-  //xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
-  //xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
- // xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
+  xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 20000, NULL, 1, &stm.buzzerTask, APP_CPU_NUM);
 

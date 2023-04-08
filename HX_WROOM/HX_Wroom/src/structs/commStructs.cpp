@@ -1,6 +1,6 @@
 #include "../include/structs/commStructs.h"
 
-void createDataFrame(DataFrame df, char *data){
+void createDataFrame(TxData df, char *data){
   size_t loraDataSize;
 
   loraDataSize = snprintf(NULL, 0, "%0.2f;%d;%0.2f",

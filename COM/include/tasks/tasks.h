@@ -13,8 +13,9 @@
 #include "../com/internalCommunication.h"
 #include "../structs/commStructs.h"
 #include "../com/now.h"
+#include "../com/can.h"
 #include <MCP23017.h>
-#include <CAN.h>
+// #include <CAN.h>
 
 extern SoftwareToolsManagment stm;
 extern InternalI2C<PWRData, TxData> pwrCom;
@@ -27,7 +28,7 @@ extern HX711_api tankWeight;
 //pro_cpu
 void loraTask(void *arg);
 void rxHandlingTask(void *arg);
-void canTask(void *arg);
+// void canTask(void *arg);
 
 
 //app_cpu

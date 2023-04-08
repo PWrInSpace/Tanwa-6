@@ -4,10 +4,10 @@
 #include "../config/config.h"
 
 
-struct TxData{
-  uint8_t command;
-  uint16_t commandValue;
-};
+// struct TxData{
+//   uint8_t command;
+//   uint16_t commandValue;
+// };
 
 struct Options{
   uint32_t bitToGramsRatioTank;
@@ -19,19 +19,21 @@ struct Options{
   {}
 };
 
-struct DataFrame{
+struct TxData{
+  String request;
   float weight;
   uint32_t weight_raw;
   float temperature;
 
 
-  DataFrame():
+  TxData():
+  request(""),
     weight(0),
     weight_raw(0),
     temperature(0)
   {}
 };
 
-void createDataFrame(DataFrame dataFrame, char *data);
+void createDataFrame(TxData dataFrame, char *data);
 
 #endif

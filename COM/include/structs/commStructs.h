@@ -21,6 +21,7 @@ struct TxData{
 
 
 struct RxData{
+  String request;
   float weight;
   uint32_t weight_raw;
   float temperature;

@@ -124,7 +124,7 @@ void rxHandlingTask(void* arg){
 
       Serial.print("ESP NOW: ");
       Serial.print("WEIGHT:   ");Serial.println(espNowData.weight);
-      Serial.print("WEIGHT RAW:   ");Serial.println(espNowData.weight_raw);
+      Serial.print("WEIGHT RAW:   ");Serial.println((uint32_t)espNowData.weight_raw);
       Serial.print("TEMP:   ");Serial.println(espNowData.temperature);
      }
 
