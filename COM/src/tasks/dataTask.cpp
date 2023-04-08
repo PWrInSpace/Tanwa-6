@@ -6,49 +6,67 @@
 
  extern float temp_cal_factor;
  extern float lastWeight;
+ extern RxData_Hx rxDataRck;
+ extern RxData_Hx rxDataBtl;
+ extern TxData_Hx txDataRck;
+ extern TxData_Hx txDataRck;
 
  void dataTask(void *arg){
   uint32_t abort_count = 0;
   int turnVar = 0;
   DataFrame dataFrame;
+
  
   expander.setPinMode(0,B,INPUT); //input for abort button
 
   //HX711
-  rckWeight.begin(HX1_SDA, HX1_SCL);
+  // rckWeight.begin(HX1_SDA, HX1_SCL);
   //rckWeight.set_gain(128);
   //rckWeight.wait_ready_timeout(); 
-  rckWeight.set_scale(temp_cal_factor);
+  // rckWeight.set_scale(temp_cal_factor);
   
 
-  Serial.print("ROCKET CAL FAC  "); Serial.println(rckWeight.get_scale(),3);
+  // Serial.print("ROCKET CAL FAC  "); Serial.println(rckWeight.get_scale(),3);
  
-  rckWeight.tare();
-  Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
+  // rckWeight.tare();
+  // Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  int dd = rckWeight.get_scale() * lastWeight; // TODO 1000 = last saved measurement! from SD
-  rckWeight.set_offset(rckWeight.get_offset()-dd);
+   vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+  while(rxDataRck.request != WORK && rxDataRck.request == ASK){
+    
+    txDataRck.request = ANSWER;
+    txDataRck.offset = lastWeight;
+    esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+    perror("esp_now_send");
+    Serial.println("SENDING ANSWER");
+    Serial.println(txDataRck.request);
+    Serial.println(txDataRck.offset);
+    Serial.println(txDataRck.command);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+  }
+  Serial.println("OUT OF LOOP");
+  
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
 
 
 
-  tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
+  // tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
   //tankWeight.set_gain(128);
   //tankWeight.wait_ready_timeout(); 
-  tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
+  // tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
   // tankWeight.set_offset(OFFSET_TANK);
-;
   // while (!tankWeight.wait_ready_retry() && !rckWeight.wait_ready_retry())
   // {
   //   vTaskDelay(1000 / portTICK_PERIOD_MS);
   // }
 
-  while (!tankWeight.wait_ready_retry())
-  {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-  }
+  // while (!tankWeight.wait_ready_retry())
+  // {
+  //   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  // }
 
 
 
@@ -62,7 +80,7 @@
  
    
   while(1){
-   
+    Serial.println("LOOP");
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
     pwrCom.getData(&pwrData);
     xSemaphoreGive(stm.i2cMutex);
@@ -79,14 +97,15 @@
       turnVar = 1;
 
     
-    dataFrame.tankWeight = tankWeight.get_units(10);
-    dataFrame.tankWeightRaw = (uint32_t) tankWeight.get_value(10);
+    dataFrame.tankWeight = rxDataBtl.weight;
+    dataFrame.tankWeightRaw = (uint32_t) rxDataBtl.weight_raw;
     
-    dataFrame.rocketWeight = rckWeight.get_units(10);
-    dataFrame.rocketWeightRaw = (uint32_t) rckWeight.get_value(10);
+    dataFrame.rocketWeight = rxDataRck.weight;
+    dataFrame.rocketWeightRaw = (uint32_t) rxDataRck.weight_raw;
 
+    //TODO dodać zapis butli
     snprintf(data, sizeof(data), "%.2f", dataFrame.rocketWeight);
-    // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
+    Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
@@ -100,13 +119,13 @@
   
 
     dataFrame.tanWaState = StateMachine::getCurrentState();
-    
+    Serial.println(analogRead(IGN_TEST_CON_1));
+    Serial.println(analogRead(IGN_TEST_CON_2));
     dataFrame.igniterContinouity_1 = analogRead(IGN_TEST_CON_1) > 1000;
     dataFrame.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
 
 
     createDataFrame(dataFrame, data);
-
     Serial.println(data);
     xQueueSend(stm.loraTxQueue, (void*)data, 0);
 
@@ -188,31 +207,31 @@
     // i2cCOM.getData(&pwrData);
     // xSemaphoreGive(stm.i2cMutex);
     
-    // Serial.println("\n\n\nCOM DATA:");
-    // Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
-    // Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
-    // Serial.print("BLINK: "); Serial.println(pwrData.tick);
-    // Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
-    // Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
-    // Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
-    // Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
-    // Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
-    // Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
+    Serial.println("\n\n\nCOM DATA:");
+    Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
+    Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
+    Serial.print("BLINK: "); Serial.println(pwrData.tick);
+    Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
+    Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
+    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
+    Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
+    Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
+    Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
     
 
-    // Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
+    Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
-    // dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
-    // Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
-    // Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
+    dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
+    Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
+    Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
  
 
-    // Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
-    // Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
-    // Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
+    Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
+    Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
+    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
-    // Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
-    // Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
+    Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
+    Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
 
   
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));

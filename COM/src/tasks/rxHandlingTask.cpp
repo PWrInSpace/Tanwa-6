@@ -3,7 +3,11 @@
 #include <iostream>
 
 using namespace std;
+RxData_Hx rxDataRck;
+RxData_Hx rxDataBtl;
 
+TxData_Hx txDataRck;
+TxData_Hx txDataBtl;
 // extern MCP23017 expander;
 extern char data[SD_FRAME_SIZE];
 
@@ -56,7 +60,7 @@ FrameStates resolveOption(string input) {
 
 void rxHandlingTask(void* arg){
   TxData espNowCommand;
-  RxData espNowData;
+
   char loraRx[LORA_RX_FRAME_SIZE];
 
   while(1){
@@ -120,12 +124,13 @@ void rxHandlingTask(void* arg){
     // }
 
 
-     if(xQueueReceive(stm.espNowRxQueue, (void*)&espNowData, 0) == pdTRUE){
+     if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxDataRck, 0) == pdTRUE){
 
-      Serial.print("ESP NOW: ");
-      Serial.print("WEIGHT:   ");Serial.println(espNowData.weight);
-      Serial.print("WEIGHT RAW:   ");Serial.println((uint32_t)espNowData.weight_raw);
-      Serial.print("TEMP:   ");Serial.println(espNowData.temperature);
+      Serial.print("ESP NOW FROM HX: ");
+      Serial.print("REQ:   ");Serial.println(rxDataRck.request);
+      // Serial.print("WEIGHT:   ");Serial.println(rxDataRck.weight);
+      // Serial.print("WEIGHT RAW:   ");Serial.println((uint32_t)rxDataRck.weight_raw);
+      // Serial.print("TEMP:   ");Serial.println(rxDataRck.temperature);
      }
 
 

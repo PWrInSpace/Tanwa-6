@@ -3,7 +3,9 @@
 
 #include "../config/config.h"
 
-
+#define WORK "WRK"
+#define ASK "ASK"
+#define ANSWER "ANS"
 // struct TxData{
 //   uint8_t command;
 //   uint16_t commandValue;
@@ -25,12 +27,24 @@ struct TxData{
   uint32_t weight_raw;
   float temperature;
 
-
   TxData():
-  request(""),
+    request(""),
     weight(0),
     weight_raw(0),
     temperature(0)
+  {}
+};
+
+
+struct RxData{
+  String request;
+  float offset;
+  uint8_t command;
+
+  RxData():
+    request(""),
+    offset(0),
+    command(-1)
   {}
 };
 

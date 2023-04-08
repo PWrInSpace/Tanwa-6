@@ -40,15 +40,32 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     TxData txData;
-    RxData rxData;
+    RxData_Hx rxDataRck;
+    RxData_Hx rxDataBtl;
     if (adressCompare(mac, adressHxRck)) {
     //   Serial.println("Data");
-      memcpy((void*) &rxData, (uint16_t *)incomingData, sizeof(RxData));
-      if(xQueueSend(stm.espNowRxQueue, (void*)&rxData, 0) == pdFALSE){
+      memcpy((void*) &rxDataRck, (uint16_t *)incomingData, sizeof(RxData_Hx));
+      if(xQueueSend(stm.espNowRxQueueHxRck, (void*)&rxDataRck, 0) == pdFALSE){
         //TODO ERROR HANDLING
         Serial.println("esp now queue error!");
       }
     }
+    else if(adressCompare(mac, adressObc)) {
+        memcpy((void*) &txData, (uint16_t *)incomingData, sizeof(TxData));
+        if(xQueueSend(stm.espNowRxQueueObc, (void*)&txData, 0) == pdFALSE){
+        //TODO ERROR HANDLING
+        Serial.println("esp now queue error!");
+      }
+    }
+    else if(adressCompare(mac, adressHxBtl)) {
+        memcpy((void*) &rxDataBtl, (uint16_t *)incomingData, sizeof(RxData_Hx));
+        if(xQueueSend(stm.espNowRxQueueHxBtl, (void*)&rxDataBtl, 0) == pdFALSE){
+        //TODO ERROR HANDLING
+        Serial.println("esp now queue error!");
+      }
+
+    }
+
 }
 
 /**********************************************************************************************/

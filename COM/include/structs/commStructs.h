@@ -4,6 +4,10 @@
 #include "../config/config.h"
 #include "../structs/stateMachine.h"
 
+#define WORK "WRK"
+#define ASK "ASK"
+#define ANSWER "ANS"
+
 enum ValveState {
   ValveStateClose = 0, 
   ValveStateOpen = 1, 
@@ -19,12 +23,31 @@ struct TxData{
   uint16_t commandValue;
 };
 
+struct TxData_Hx{
+  String request;
+  float offset;
+  uint8_t command;
 
-struct RxData{
+  TxData_Hx():
+    request(""),
+    offset(0),
+    command(-1)
+  {}
+};
+
+
+struct RxData_Hx{
   String request;
   float weight;
   uint32_t weight_raw;
   float temperature;
+
+  RxData_Hx():
+    request(""),
+    weight(0),
+    weight_raw(0),
+    temperature(0)
+  {}
 };
 
 struct PWRData{

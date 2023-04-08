@@ -39,11 +39,11 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 /**********************************************************************************************/
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
-    TxData txData;
+    RxData rxData_temp;
     if (adressCompare(mac, adressTanwa)) {
-      Serial.println("Data");
-      memcpy((void*) &txData, (uint16_t *)incomingData, sizeof(TxData));
-      if(xQueueSend(stm.espNowRxQueue, (void*)&txData, 0) == pdFALSE){
+      
+      memcpy((void*) &rxData_temp, (uint16_t *)incomingData, sizeof(RxData));
+      if(xQueueSend(stm.espNowRxQueue, (void*)&rxData_temp, 0) == pdFALSE){
         //TODO ERROR HANDLING
         Serial.println("esp now queue error!");
       }

@@ -11,6 +11,6 @@
 extern HX711_api HxWeight;
 //app_cpu
 void dataTask(void *arg);
-
+void rxHandlingTask(void *arg);
 
 #endif

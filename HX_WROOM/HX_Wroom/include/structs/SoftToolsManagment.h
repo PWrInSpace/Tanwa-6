@@ -9,6 +9,7 @@
 struct SoftwareToolsManagment{
 
   TaskHandle_t dataTask;
+  TaskHandle_t rxHandlingTask;
   QueueHandle_t espNowRxQueue;
 
   //SemaphoreHandle_t i2cMutex;

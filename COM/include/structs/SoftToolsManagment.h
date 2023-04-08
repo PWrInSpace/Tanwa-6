@@ -21,7 +21,9 @@ struct SoftwareToolsManagment{
   QueueHandle_t sdQueue_lastWeight;
   QueueHandle_t loraTxQueue;
   QueueHandle_t loraRxQueue;
-  QueueHandle_t espNowRxQueue;
+  QueueHandle_t espNowRxQueueHxRck;
+  QueueHandle_t espNowRxQueueHxBtl;
+  QueueHandle_t espNowRxQueueObc;
 
   SemaphoreHandle_t i2cMutex;
   SemaphoreHandle_t spiMutex;

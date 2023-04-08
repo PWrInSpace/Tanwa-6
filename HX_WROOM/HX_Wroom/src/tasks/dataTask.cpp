@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 char data[256] = {};
 extern float temp_cal_factor;
+extern RxData rxData;
 
 void dataTask(void *arg){
 
@@ -9,8 +10,8 @@ void dataTask(void *arg){
   uint16_t HxWeight_unit;
   TxData dataFrame;
 
+
   Serial.print("ROCKET WEIGHT: \n");
-    //HX711
   HxWeight.begin(HX_SDA, HX_SCL);
 
    while (!HxWeight.wait_ready_retry())
@@ -27,14 +28,25 @@ void dataTask(void *arg){
   Serial.print("ROCKET OFFSET  "); Serial.println(HxWeight.get_offset());
 
   //TODO add ASK request for offset to COM
+  while (rxData.request != ANSWER) {
 
+    dataFrame.request = ASK;
+    esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
+    Serial.println("SENDING ASK");
+    Serial.println(dataFrame.request);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
 
-
+  }
+  Serial.println(" OUUUUUUUUUUUUUUUUUUUUTTTTTTTTTT            LOOP");
+  HxWeight.set_offset(rxData.offset);
+  int dd = HxWeight.get_scale() * rxData.offset; 
+  HxWeight.set_offset(HxWeight.get_offset()-dd);
+  Serial.print("OFFSET = "); Serial.println(HxWeight.get_offset());
+  dataFrame.request = WORK;
+  esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
 
 
   //  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  // int dd = rckWeight.get_scale() * lastWeight; // TODO 1000 = last saved measurement! from SD
-  // rckWeight.set_offset(rckWeight.get_offset()-dd);
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
 
@@ -52,7 +64,7 @@ void dataTask(void *arg){
         Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
         vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-        int x_temp = 0, y_temp = 0;
+        int x_temp = 0;
         
         temp_cal_factor2 = temp_cal_factor2*1000;
           
@@ -94,10 +106,10 @@ void dataTask(void *arg){
     createDataFrame(dataFrame, data);
     Serial.print("DATA SENT:  "); Serial.println(data);
     esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
-    perror("esp_now_send");
+    // perror("esp_now_send");
 
    
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
   }
 }

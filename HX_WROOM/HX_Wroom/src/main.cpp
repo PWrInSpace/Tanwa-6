@@ -40,15 +40,15 @@ void setup() {
 
   Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
   
-  
-   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  //TODO ADJUST TIME TO TURN ON ACCORDING TO COM TIMING
+   vTaskDelay(3000 / portTICK_PERIOD_MS);
 
   nowInit();
   nowAddPeer(adressTanwa, 0);
 
   canInit();
 
-  // stm.espNowRxQueue = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
+  stm.espNowRxQueue = xQueueCreate(10, sizeof(RxData));
   // stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
   //stm.i2c.setTimeOut(20);
 
@@ -58,6 +58,7 @@ void setup() {
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
 
   //if(stm.i2cMutex == NULL){
