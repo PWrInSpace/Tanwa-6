@@ -39,7 +39,17 @@ void sdTask(void *arg){
   String data2 = file.readStringUntil(';');
   Serial.println(data2.toFloat());
   file.close();
-  lastWeight = data2.toFloat();
+
+  if(data2.toFloat()==0){
+    File file = SD.open(dataPath_lastWeight + String(sd_j-2) + ".txt", FILE_READ);
+    String data3 = file.readStringUntil(';');
+    Serial.println(data3.toFloat());
+    file.close();
+    lastWeight = data3.toFloat();
+  } 
+  else 
+    lastWeight = data2.toFloat();
+    
   xTaskNotifyGive(stm.dataTask);
   
   dataPath_lastWeight = dataPath_lastWeight + String(sd_j) + ".txt";

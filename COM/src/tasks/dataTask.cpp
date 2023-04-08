@@ -3,7 +3,7 @@
 
  char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
-
+ bool lastWeightFlag = false;
  extern float temp_cal_factor;
  extern float lastWeight;
  extern RxData_Hx rxDataRck;
@@ -32,10 +32,10 @@
   // Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
 
   while(rxDataRck.request != WORK && rxDataRck.request == ASK){
-    
+    // lastWeightFlag = true;
     txDataRck.request = ANSWER;
     txDataRck.offset = lastWeight;
     esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
@@ -78,8 +78,13 @@
 
   vTaskDelay(100 / portTICK_PERIOD_MS);
  
-   
+  lastWeightFlag = true;
   while(1){
+
+    txDataRck.request = WORK;
+    txDataRck.offset = 0;
+    txDataRck.command = NOTHING;
+    
     Serial.println("LOOP");
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
     pwrCom.getData(&pwrData);
@@ -123,7 +128,7 @@
     Serial.println(analogRead(IGN_TEST_CON_2));
     dataFrame.igniterContinouity_1 = analogRead(IGN_TEST_CON_1) > 1000;
     dataFrame.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
-
+    dataFrame.hxRequest = rxDataRck.request;
 
     createDataFrame(dataFrame, data);
     Serial.println(data);
@@ -134,6 +139,13 @@
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
       //TODO UNCOMMENT + change pin or solder correct pull up
       if(!expander.getPin(0,B)){// ABORT BUTTON
+        expander.setPinX(5,A,OUTPUT, OFF);
+        txDataRck.request = ASK;
+        txDataRck.offset = 1000;
+        txDataRck.command = CALIBRATE_HX;
+        esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+
       // //################### real abort content ###################
       //   // abort_count++;
       //   // Serial.println("==================");
@@ -147,42 +159,6 @@
       //   //   Serial.println("ABORT BUTTON CONFIRMATION");
       //   //}
       //   //##########################################################
-      //   //DEBUG
-      //   float temp_cal_factor2;
-      //   temp_cal_factor2 = rckWeight.calibration(1000);
-        
-      //   Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
-      //   vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-      //   int x_temp = 0, y_temp = 0;
-        
-      //   temp_cal_factor2 = temp_cal_factor2*1000;
-          
-      //   //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
-      //   if(abs(temp_cal_factor2)<=99999){    
-      //     int tab[6];
-      //     if(temp_cal_factor2<0)
-      //       tab[5] = 1;
-      //     else
-      //       tab[5] = 0;
-      //     for (int i=0; i<5; i++){
-      //       x_temp=abs(temp_cal_factor2)/10;
-      //       tab[i] = abs(temp_cal_factor2) - 10*x_temp;
-      //       temp_cal_factor2 = x_temp;
-      //       Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
-      //       EEPROM.write(i, tab[i]);
-      //       EEPROM.commit();
-      //     } 
-      //     Serial.println("is negative: "); Serial.println(tab[5]);
-      //     EEPROM.write(5, tab[5]);
-      //     EEPROM.commit();
-      //   }
-
-      //   vTaskDelay(5000 / portTICK_PERIOD_MS); 
-
-
-        
-        
       }
       else{
         abort_count = 0;
@@ -190,8 +166,9 @@
         expander.setPin(4,A,ON);
         xSemaphoreGive(stm.i2cMutex);
       }
-       
 
+     
+      expander.setPinX(5,A,OUTPUT, ON);
       xSemaphoreGive(stm.i2cMutex);
       // canSend();
 
@@ -232,6 +209,7 @@
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
     Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
+    Serial.print("HX REQUEST "); Serial.println(dataFrame.hxRequest);
 
   
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));

@@ -8,6 +8,7 @@
 #define ASK "ASK"
 #define ANSWER "ANS"
 
+
 enum ValveState {
   ValveStateClose = 0, 
   ValveStateOpen = 1, 
@@ -79,6 +80,7 @@ struct DataFrame{
   bool armButton : 1;
   bool igniterContinouity_1;
   bool igniterContinouity_2;
+  String hxRequest;
   float vbat;
   uint8_t motorState_1;
   uint8_t motorState_2;
@@ -100,6 +102,7 @@ struct DataFrame{
     armButton(0),
     igniterContinouity_1(0),
     igniterContinouity_2(0),
+    hxRequest(""),
     vbat(0),
     motorState_1(0),
     motorState_2(0),

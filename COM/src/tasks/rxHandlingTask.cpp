@@ -10,6 +10,9 @@ TxData_Hx txDataRck;
 TxData_Hx txDataBtl;
 // extern MCP23017 expander;
 extern char data[SD_FRAME_SIZE];
+extern bool lastWeightFlag;
+
+
 
 enum FrameStates {
     PLSS_,
@@ -59,7 +62,8 @@ FrameStates resolveOption(string input) {
 
 
 void rxHandlingTask(void* arg){
-  TxData espNowCommand;
+
+  RxData_Hx rxData_temp;
 
   char loraRx[LORA_RX_FRAME_SIZE];
 
@@ -124,10 +128,22 @@ void rxHandlingTask(void* arg){
     // }
 
 
-     if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxDataRck, 0) == pdTRUE){
+     if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxData_temp, 0) == pdTRUE){
 
       Serial.print("ESP NOW FROM HX: ");
-      Serial.print("REQ:   ");Serial.println(rxDataRck.request);
+      Serial.print("REQ:   ");Serial.println(rxData_temp.request);
+
+      if(rxData_temp.request == ASK && lastWeightFlag == true){
+        rxDataRck.request = rxData_temp.request;
+        txDataRck.request = ANSWER;
+        txDataRck.offset = rxDataRck.weight;
+        esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+        perror("esp_now_send");
+        
+      }
+      else{
+        memcpy(&rxDataRck, &rxData_temp, sizeof(rxData_temp));
+      }
       // Serial.print("WEIGHT:   ");Serial.println(rxDataRck.weight);
       // Serial.print("WEIGHT RAW:   ");Serial.println((uint32_t)rxDataRck.weight_raw);
       // Serial.print("TEMP:   ");Serial.println(rxDataRck.temperature);

@@ -57,6 +57,16 @@ static String dataFileName_lastWeight= "/lastWeight_";
 #define SOFT_DISARM 91
 #define SOFT_RESTART 99
 
+
+
+//ESPNOW COMMNANDS FOR HX
+#define NOTHING 255
+#define TARE_HX 70
+#define CALIBRATE_HX 71
+#define SET_CAL_FACTOR_HX 72
+#define SET_OFFSET_HX 73
+#define SOFT_RESTART_HX 99
+
 //Expander 
 #define MCP_ADDRESS 0x20 
 

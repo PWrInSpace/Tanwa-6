@@ -7,7 +7,7 @@ extern RxData rxData;
 void dataTask(void *arg){
 
   uint16_t HxWeight_raw;
-  uint16_t HxWeight_unit;
+  float HxWeight_unit;
   TxData dataFrame;
 
 
@@ -25,7 +25,7 @@ void dataTask(void *arg){
   Serial.print("ROCKET CAL FAC  "); Serial.println(HxWeight.get_scale(),3);
   // HxWeight.set_offset(OFFSET_RCK);
   HxWeight.tare();
-  Serial.print("ROCKET OFFSET  "); Serial.println(HxWeight.get_offset());
+  Serial.print("ROCKET OFFSET  "); Serial.println(HxWeight.get_offset(),2);
 
   //TODO add ASK request for offset to COM
   while (rxData.request != ANSWER) {
@@ -37,9 +37,11 @@ void dataTask(void *arg){
     vTaskDelay(5000 / portTICK_PERIOD_MS);
 
   }
-  Serial.println(" OUUUUUUUUUUUUUUUUUUUUTTTTTTTTTT            LOOP");
-  HxWeight.set_offset(rxData.offset);
+  Serial.println(" OUUUUUUUUUUUUUUUUUUUUTTTTTTTTTT LOOP");
   int dd = HxWeight.get_scale() * rxData.offset; 
+  //DEBUG
+    // int dd = HxWeight.get_scale() * 1000;
+  //DEBUG END 
   HxWeight.set_offset(HxWeight.get_offset()-dd);
   Serial.print("OFFSET = "); Serial.println(HxWeight.get_offset());
   dataFrame.request = WORK;
@@ -49,55 +51,15 @@ void dataTask(void *arg){
   //  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
-
-
-  vTaskDelay(100 / portTICK_PERIOD_MS);
  
    
   while(1){
 
-    if(digitalRead(CALIBRATION_PIN) == HIGH){
+    HxWeight_unit = HxWeight.get_units(10);
+    HxWeight_raw = (uint32_t) HxWeight.get_value(10);
 
-        float temp_cal_factor2;
-        temp_cal_factor2 = HxWeight.calibration(1000);
-        
-        Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-        int x_temp = 0;
-        
-        temp_cal_factor2 = temp_cal_factor2*1000;
-          
-        //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
-        if(abs(temp_cal_factor2)<=99999){    
-          int tab[6];
-          if(temp_cal_factor2<0)
-            tab[5] = 1;
-          else
-            tab[5] = 0;
-          for (int i=0; i<5; i++){
-            x_temp=abs(temp_cal_factor2)/10;
-            tab[i] = abs(temp_cal_factor2) - 10*x_temp;
-            temp_cal_factor2 = x_temp;
-            Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
-            EEPROM.write(i, tab[i]);
-            EEPROM.commit();
-          } 
-          Serial.println("is negative: "); Serial.println(tab[5]);
-          EEPROM.write(5, tab[5]);
-          EEPROM.commit();
-        }
-
-        vTaskDelay(5000 / portTICK_PERIOD_MS); 
-
-
-    }
-    
-    HxWeight_unit = HxWeight.get_units(1);
-    HxWeight_raw = (uint32_t) HxWeight.get_value(1);
-
-    // Serial.print("ROCKET WEIGHT: "); Serial.println(HxWeight_unit);
-    // Serial.print("ROCKET WEIGHT RAW: "); Serial.println(HxWeight_raw);
+    Serial.print("ROCKET WEIGHT: "); Serial.println(HxWeight_unit);
+    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(HxWeight_raw);
 
     dataFrame.weight = HxWeight_unit;
     dataFrame.weight_raw = (uint32_t)HxWeight_raw;
@@ -108,7 +70,6 @@ void dataTask(void *arg){
     esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
     // perror("esp_now_send");
 
-   
 
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }

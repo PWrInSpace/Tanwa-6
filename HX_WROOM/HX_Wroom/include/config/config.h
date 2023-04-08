@@ -25,4 +25,12 @@
 #define OFFSET_TANK 1
 #define STABILIZNG_TIME 4000
 
+
+#define NOTHING 255
+#define TARE_ 70
+#define CALIBRATE_ 71
+#define SET_CAL_FACTOR_ 72
+#define SET_OFFSET_ 73
+#define SOFT_RESTART_ 99
+
 #endif

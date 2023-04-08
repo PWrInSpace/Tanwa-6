@@ -44,10 +44,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     RxData_Hx rxDataBtl;
     if (adressCompare(mac, adressHxRck)) {
     //   Serial.println("Data");
+
+
       memcpy((void*) &rxDataRck, (uint16_t *)incomingData, sizeof(RxData_Hx));
+  
+
       if(xQueueSend(stm.espNowRxQueueHxRck, (void*)&rxDataRck, 0) == pdFALSE){
         //TODO ERROR HANDLING
         Serial.println("esp now queue error!");
+        xQueueReset(stm.espNowRxQueueHxRck);
       }
     }
     else if(adressCompare(mac, adressObc)) {
