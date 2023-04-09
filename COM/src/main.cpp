@@ -54,6 +54,7 @@ void setup() {
   //ledcSetup(0,2000,8);// PWM FOR BUZZER
  // ledcAttachPin(BUZZER, 0);
   
+  
   stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
   stm.i2c.setTimeOut(20);
   stm.spi.begin();

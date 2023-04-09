@@ -127,7 +127,7 @@ void rxHandlingTask(void* arg){
     //   }
     // }
 
-
+      //TODO FLAG FROM HX THAT THERE IS NO COMMUNICATION
      if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxData_temp, 0) == pdTRUE){
 
       Serial.print("ESP NOW FROM HX: ");

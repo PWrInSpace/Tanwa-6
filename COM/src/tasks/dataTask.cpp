@@ -16,9 +16,11 @@
   int turnVar = 0;
   DataFrame dataFrame;
 
- 
+   
+  xSemaphoreTake(stm.i2cMutex, pdTRUE);
   expander.setPinMode(0,B,INPUT); //input for abort button
-
+  xSemaphoreGive(stm.i2cMutex);
+ 
   //HX711
   // rckWeight.begin(HX1_SDA, HX1_SCL);
   //rckWeight.set_gain(128);
@@ -92,7 +94,7 @@
 
 
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
-    expander.setPin(2,B,turnVar);
+    expander.setPinX(2,B,OUTPUT, turnVar);
     xSemaphoreGive(stm.i2cMutex);
 
 
@@ -137,9 +139,16 @@
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      int abrtButton = expander.getPin(0,B);
+      xSemaphoreGive(stm.i2cMutex);
+
       //TODO UNCOMMENT + change pin or solder correct pull up
-      if(!expander.getPin(0,B)){// ABORT BUTTON
+      if(!abrtButton){// ABORT BUTTON
+
+        xSemaphoreTake(stm.i2cMutex, pdTRUE);
         expander.setPinX(5,A,OUTPUT, OFF);
+        xSemaphoreGive(stm.i2cMutex);
+
         txDataRck.request = ASK;
         txDataRck.offset = 1000;
         txDataRck.command = CALIBRATE_HX;
@@ -167,7 +176,7 @@
         xSemaphoreGive(stm.i2cMutex);
       }
 
-     
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
       expander.setPinX(5,A,OUTPUT, ON);
       xSemaphoreGive(stm.i2cMutex);
       // canSend();
