@@ -192,7 +192,7 @@ void rxHandlingTask(void* arg){
 
           switch(resolveOption(frame_function)){
 
-            case PLSS_:
+            case PLSS_:{
               LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
               pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
               bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
@@ -206,70 +206,81 @@ void rxHandlingTask(void* arg){
                 // Serial.println(data);//debug
               }
               break;
+            }
 
-            case TANK_:
+            case TANK_:{
               xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              pwrCom.sendCommandMotor(MOTOR_FILL, atoi(frame_array[2].c_str()),atoi(frame_array[3].c_str()));
+              // pwrCom.sendCommandMotor(MOTOR_FILL /*TODO add payload decoder*/);
               xSemaphoreGive(stm.i2cMutex);
               printf("MOTOOOR FILL\n");
               break;
-            
+            }
             case DEPR_:
               xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              pwrCom.sendCommandMotor(MOTOR_DEPR, atoi(frame_array[2].c_str()),atoi(frame_array[3].c_str()));
+              // pwrCom.sendCommandMotor(MOTOR_DEPR /*TODO add payload decoder*/);
               xSemaphoreGive(stm.i2cMutex);
               printf("MOTOOOOR DEPR\n");
               break;
 
-            case QD_:
+            case QD_:{
               xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, atoi(frame_array[2].c_str()),atoi(frame_array[3].c_str()));
+              // pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT /*TODO add payload decoder*/);
               xSemaphoreGive(stm.i2cMutex);
               printf("MOTOOOR QUICK DISCONNECT\n");
               break;
-
-            case ARM_:
+            }
+            case ARM_:{
               digitalWrite(ARM_PIN, HIGH);
               break;
+            }
 
-            case DISARM_:
+            case DISARM_:{
               digitalWrite(ARM_PIN, LOW);
               break;
+            }
 
-            case IGNITER_:
+            case IGNITER_:{
               digitalWrite(FIRE1, HIGH);
               digitalWrite(FIRE2, HIGH);
               break;
+            }
 
-             case TARE_RCK_:
+             case TARE_RCK_:{
               rckWeight.tare();
               break;
+            }
             
-            case CALIBRATE_RCK_:
-              rckWeight.calibration(atoi(frame_array[2].c_str()));
+            case CALIBRATE_RCK_:{
+              // rckWeight.calibration(/*TODO add payload decoder*/);
               Serial.print("CAL FACTOR ROCKET: "); 
               Serial.println(rckWeight.get_scale());
               break;
+            }
 
-            case TARE_TANK_:
+            case TARE_TANK_:{
               tankWeight.tare();
               break;
+            }
 
-            case CALIBRATE_TANK_:
+            case CALIBRATE_TANK_:{
               // tankWeight.CustomCalibration(atoi(frame_array[3].c_str()),0);
               // tankWeight.CustomCalibration(atoi(frame_array[2].c_str()));
-              tankWeight.calibration(atoi(frame_array[2].c_str()));
+
+
+              // tankWeight.calibration(/*TODO add payload decoder*/);
               Serial.print("CAL FACTOR TANK: "); 
               Serial.println(tankWeight.get_scale());
 
               break;
+            }
 
-            case SOFT_RESTART_ESP_:
+            case SOFT_RESTART_ESP_:{
               //RESET ESP COMMAND
               ESP.restart();
               break;
+            }
 
-            case SOFT_RESTART_STM_:
+            case SOFT_RESTART_STM_:{
               //RESET STM
               // pwrCom.sendCommandMotor(0, RESET_COMMAND);
               xSemaphoreTake(stm.i2cMutex, pdTRUE);
@@ -283,25 +294,28 @@ void rxHandlingTask(void* arg){
               xSemaphoreGive(stm.i2cMutex);
 
               break;
+            }
 
-          case SET_CAL_FACTOR_:
-            if(frame_array[2]=="RCK"){
-              rckWeight.set_scale(atoi(frame_array[3].c_str()));
-              Serial.print("CAL FACTOR RCK = "); Serial.println(atoi(frame_array[3].c_str()));
-            }
-            else if (frame_array[2]=="TANK"){
-              tankWeight.set_scale(atoi(frame_array[3].c_str()));
-              Serial.print("CAL FACTOR TANK = "); Serial.println(atoi(frame_array[3].c_str()));
-            }
+          case SET_CAL_FACTOR_:{
+            // if(/*TODO add payload decoder*/=="RCK"){
+            //   rckWeight.set_scale(/*TODO add payload decoder*/);
+            //   Serial.print("CAL FACTOR RCK = "); Serial.println(/*TODO add payload decoder*/);
+            // }
+            // else if (/*TODO add payload decoder*/=="TANK"){
+            //   tankWeight.set_scale(atoi(/*TODO add payload decoder*/);
+            //   Serial.print("CAL FACTOR TANK = "); Serial.println(/*TODO add payload decoder*/);
+            // }
             
             break;
+          }
 
-            case STAT_:
-              StateMachine::changeStateRequest(static_cast<States>(atoi(frame_array[3].c_str())));
+            case STAT_:{
+              // StateMachine::changeStateRequest(static_cast<States>(/*TODO add payload decoder*/);
               Serial.println("STATE CHANGE REQUEST");
               break;
+            }
               
-            case HOLD_IN_:
+            case HOLD_IN_:{
               Serial.println("hold in");
               if(StateMachine::getCurrentState() != States::HOLD){
                 if(StateMachine::changeStateRequest(States::HOLD) == false)
@@ -309,8 +323,9 @@ void rxHandlingTask(void* arg){
               }else
                 Serial.println("ERROR HOLD IN");
               break;
+            }
           
-            case HOLD_OUT_:
+            case HOLD_OUT_:{
               Serial.println("hold out");
               if(StateMachine::getCurrentState() == States::HOLD){
                 if(StateMachine::changeStateRequest(States::HOLD) == false)
@@ -318,11 +333,13 @@ void rxHandlingTask(void* arg){
               }else
                 Serial.println("ERROR HOLD OUT");
               break;
+            }
 
-            case ABORT_:
+            case ABORT_:{
               Serial.println("ABORT");
               StateMachine::changeStateRequest(States::ABORT);
               break;
+            }
 
             default:
               break;

@@ -7,22 +7,24 @@ message LoRaFrameTanwa {
     required uint32 tanWaState = 1;
     required uint32 pressureSensor = 2;
     required uint32 solenoid_fill= 3;
-    required uint32 solenoid_depr = 4 ;
-    required bool tankHeating = 5;
-    required bool abortButton = 6;
-    required bool armButton = 7;
-    required bool igniterContinouity_1 = 8;
-    required bool igniterContinouity_2 = 9;
-    required uint32 hxRequest = 10; // arduino string
-    required float vbat = 11;
-    required uint32 motorState_1 = 12;
-    required uint32 motorState_2 = 13;
-    required uint32 motorState_3 = 14;
-    required uint32 motorState_4 =15;
-    required float rocketWeight_val = 16;
-    required float tankWeight_val = 17; 
-    required uint32 rocketWeightRaw_val = 18;
-    required uint32 tankWeightRaw_val = 19;
+    required uint32 solenoid_depr = 4;
+    required bool abortButton = 5;
+    required bool igniterContinouity_1 = 6;
+    required bool igniterContinouity_2 = 7;
+    required uint32 hxRequest_RCK = 8; // arduino string
+    required uint32 hxRequest_TANK = 9; // arduino string
+    required float vbat = 10;
+    required uint32 motorState_1 = 11;
+    required uint32 motorState_2 = 12;
+    required uint32 motorState_3 = 13;
+    required uint32 motorState_4 = 14;
+    required float rocketWeight_val = 15;
+    required float tankWeight_val = 16; 
+    required uint32 rocketWeightRaw_val = 17;
+    required uint32 tankWeightRaw_val = 18;
+    required bool interface_rck = 19;
+    required bool interface_tank = 20;
+    required bool interface_mcu = 21;
 }
 
 message LoRaCommandTanwa {

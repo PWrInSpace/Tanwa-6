@@ -75,12 +75,11 @@ struct DataFrame{
   uint16_t pressureSensor;
   uint16_t solenoid_fill; //pin pa0 10 pin stm adc
   uint16_t solenoid_depr; // pin pa2 12 pin stm adc
-  bool tankHeating : 1;
   bool abortButton : 1;
-  bool armButton : 1;
   bool igniterContinouity_1;
   bool igniterContinouity_2;
-  String hxRequest;
+  String hxRequest_RCK;
+  String hxRequest_TANK;
   float vbat;
   uint8_t motorState_1;
   uint8_t motorState_2;
@@ -90,6 +89,9 @@ struct DataFrame{
   float tankWeight_val; 
   uint32_t rocketWeightRaw_val;
   uint32_t tankWeightRaw_val;
+  bool interface_rck;
+  bool interface_tank;
+  bool interface_mcu;
 
 
   DataFrame():
@@ -97,12 +99,11 @@ struct DataFrame{
     pressureSensor(0),
     solenoid_fill(0),
     solenoid_depr(0),
-    tankHeating(0),
     abortButton(0),
-    armButton(0),
     igniterContinouity_1(0),
     igniterContinouity_2(0),
-    hxRequest(""),
+    hxRequest_RCK(""),
+    hxRequest_TANK(""),
     vbat(0),
     motorState_1(0),
     motorState_2(0),
@@ -111,7 +112,11 @@ struct DataFrame{
     rocketWeight_val(0),
     tankWeight_val(0),
     rocketWeightRaw_val(0),
-    tankWeightRaw_val(0)
+    tankWeightRaw_val(0),
+    interface_rck(0),
+    interface_tank(0),
+    interface_mcu(0)
+
   {}
 };
 

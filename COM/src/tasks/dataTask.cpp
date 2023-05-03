@@ -16,6 +16,8 @@
  void dataTask(void *arg){
   uint32_t abort_count = 0;
   int turnVar = 0;
+  int SD_cont = 0;
+  int abrtButton = 0;
   DataFrame dataFrame;
 
   xSemaphoreTake(stm.i2cMutex, pdTRUE);
@@ -55,7 +57,6 @@
   vTaskDelay(3000 / portTICK_PERIOD_MS);
 
 
-
   // tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
   //tankWeight.set_gain(128);
   //tankWeight.wait_ready_timeout(); 
@@ -70,10 +71,6 @@
   // {
   //   vTaskDelay(1000 / portTICK_PERIOD_MS);
   // }
-
-
-
-
 
 
   // !!!//DEBUG
@@ -93,18 +90,15 @@
     pwrCom.getData(&pwrData);
     xSemaphoreGive(stm.i2cMutex);
 
-
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
     expander.setPinX(2,B,OUTPUT, turnVar);
     xSemaphoreGive(stm.i2cMutex);
-
 
     if(turnVar == 1)
       turnVar = 0;
     else
       turnVar = 1;
 
-    
     loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
     loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
     
@@ -133,24 +127,23 @@
     loraFrameTanwa.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
 
     if(rxDataRck.request == ANSWER){
-        loraFrameTanwa.hxRequest = 1;
+        loraFrameTanwa.hxRequest_RCK = 1;
     }else if(rxDataRck.request == ANSWER){
-        loraFrameTanwa.hxRequest = 2;
+        loraFrameTanwa.hxRequest_RCK = 2;
     }else if(rxDataRck.request == WORK){
-        loraFrameTanwa.hxRequest = 3;
+        loraFrameTanwa.hxRequest_RCK = 3;
     }else{
-        loraFrameTanwa.hxRequest = 0;
+        loraFrameTanwa.hxRequest_RCK = 0;
     }
 
     dataFrame.tanWaState = loraFrameTanwa.tanWaState;
     dataFrame.pressureSensor = loraFrameTanwa.pressureSensor;
     dataFrame.solenoid_fill = loraFrameTanwa.solenoid_fill;
     dataFrame.solenoid_depr = loraFrameTanwa.solenoid_depr;
-    dataFrame.tankHeating = loraFrameTanwa.tankHeating;
     dataFrame.abortButton = loraFrameTanwa.abortButton;
     dataFrame.igniterContinouity_1 = loraFrameTanwa.igniterContinouity_1;
     dataFrame.igniterContinouity_2 = loraFrameTanwa.igniterContinouity_2;
-    dataFrame.hxRequest = rxDataRck.request;
+    dataFrame.hxRequest_RCK = rxDataRck.request;
     dataFrame.vbat = loraFrameTanwa.vbat;
     dataFrame.motorState_1 = loraFrameTanwa.motorState_1;
     dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
@@ -169,7 +162,8 @@
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      int abrtButton = expander.getPin(0,B);
+      abrtButton = !expander.getPin(0,B);
+      SD_cont = !expander.getPin(7,A);
       xSemaphoreGive(stm.i2cMutex);
 
       //TODO UNCOMMENT + change pin or solder correct pull up
@@ -213,19 +207,19 @@
 
 
       
-      // Serial.println("RESeeeeeeeeeeeeeeeET");
-      // vTaskDelay(5000 / portTICK_PERIOD_MS);
-      // xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      // expander.setPinX(4,A,OUTPUT,ON);
-      // xSemaphoreGive(stm.i2cMutex);
+    // Serial.println("RESeeeeeeeeeeeeeeeET");
+    // vTaskDelay(5000 / portTICK_PERIOD_MS);
+    // xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    // expander.setPinX(4,A,OUTPUT,ON);
+    // xSemaphoreGive(stm.i2cMutex);
     //DEBUG(data);
     // xSemaphoreTake(stm.i2cMutex, pdTRUE);
     // i2cCOM.getData(&pwrData);
     // xSemaphoreGive(stm.i2cMutex);
     
     Serial.println("\n\n\nCOM DATA:");
-    Serial.print("SD status: "); Serial.println(!expander.getPin(7,A));
-    Serial.print("ABORT: "); Serial.println(!expander.getPin(0,B));
+    Serial.print("SD status: "); Serial.println(SD_cont);
+    Serial.print("ABORT: "); Serial.println(abrtButton);
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
     Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
     Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
@@ -248,7 +242,7 @@
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
     Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
-    Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest);
+    Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest_RCK);
 
 
     // esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
