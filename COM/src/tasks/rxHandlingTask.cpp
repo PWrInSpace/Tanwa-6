@@ -1,6 +1,9 @@
 #include "../include/tasks/tasks.h"
 #include <string>
 #include <iostream>
+#include "lora.pb.h"
+#include "pb_decode.h"
+#include "pb_encode.h"
 
 using namespace std;
 RxData_Hx rxDataRck;
@@ -9,7 +12,7 @@ RxData_Hx rxDataBtl;
 TxData_Hx txDataRck;
 TxData_Hx txDataBtl;
 // extern MCP23017 expander;
-extern char data[SD_FRAME_SIZE];
+uint8_t data_buff[SD_FRAME_SIZE];
 extern bool lastWeightFlag;
 
 
@@ -37,25 +40,25 @@ enum FrameStates {
 };
 
 
-FrameStates resolveOption(string input) {
-    if( input == "PLSS" ) return PLSS_;
-    if( input == "TANK" ) return TANK_;
-    if( input == "DEPR" ) return DEPR_;
-    if( input == "QD" ) return QD_;
-    if( input == "ARM" ) return ARM_;
-    if( input == "DISARM" ) return DISARM_;
-    if( input == "IGNITER" ) return IGNITER_;
-    if( input == "TARE_RCK" ) return TARE_RCK_;
-    if( input == "CALIBRATE_RCK" ) return CALIBRATE_RCK_;
-    if( input == "TARE_TANK" ) return TARE_TANK_;
-    if( input == "CALIBRATE_TANK" ) return CALIBRATE_TANK_;
-    if( input == "SOFT_RESTART_ESP" ) return SOFT_RESTART_ESP_;
-    if( input == "SOFT_RESTART_STM" ) return SOFT_RESTART_STM_;
-    if( input == "SET_CAL_FACTOR" ) return SET_CAL_FACTOR_;
-    if( input == "STAT" ) return STAT_;
-    if( input == "HOLD_IN" ) return HOLD_IN_;
-    if( input == "HOLD_OUT" ) return HOLD_OUT_;
-    if( input == "ABORT" ) return ABORT_;
+FrameStates resolveOption(uint32_t input) {
+    if( input == 0x11 ) return PLSS_;
+    if( input ==  0x22) return TANK_;
+    if( input == 0x33 ) return DEPR_;
+    if( input == 0x44 ) return QD_;
+    if( input == 0x55 ) return ARM_;
+    if( input == 0x66 ) return DISARM_;
+    if( input == 0x77 ) return IGNITER_;
+    if( input == 0x88 ) return TARE_RCK_;
+    if( input == 0x99 ) return CALIBRATE_RCK_;
+    if( input == 0xAA ) return TARE_TANK_;
+    if( input == 0xBB ) return CALIBRATE_TANK_;
+    if( input == 0xCC ) return SOFT_RESTART_ESP_;
+    if( input == 0xDD ) return SOFT_RESTART_STM_;
+    if( input == 0xEE ) return SET_CAL_FACTOR_;
+    if( input == 0xFF) return STAT_;
+    if( input == 0x990) return HOLD_IN_;
+    if( input == 0x100 ) return HOLD_OUT_;
+    if( input == 0x420 ) return ABORT_;
     //...
     return INVALID;
  }
@@ -64,8 +67,9 @@ FrameStates resolveOption(string input) {
 void rxHandlingTask(void* arg){
 
   RxData_Hx rxData_temp;
+  LoRaCommandTanwa loraCommandTanwa_Rx = LoRaCommandTanwa_init_zero;
 
-  char loraRx[LORA_RX_FRAME_SIZE];
+  uint8_t loraRx[LORA_RX_FRAME_SIZE];
 
   while(1){
     // Serial.println("RX TASK");
@@ -151,42 +155,53 @@ void rxHandlingTask(void* arg){
 
 
     //LORA 
-    if(xQueueReceive(stm.loraRxQueue, (void*)&loraRx, 0) == pdTRUE){
+    if(xQueueReceive(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx, 0) == pdTRUE){
       Serial.print("LORAAAAAAAAAAAAAAAAAAAAAAA: ");
+   
+
+
       
-      Serial.println(loraRx);
+      // Serial.println(loraRx);
     //parser
-      string frame_array [50];
-      string loraRx_frame = loraRx;
-      string delimiter = ";";
-      string frame_elem;
-      string frame_function;
+      // string frame_array [50];
+      // string loraRx_frame = loraRx;
+      // string delimiter = ";";
+      // string frame_elem;
+      uint32_t frame_function;
       
-      frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
-      frame_array[0] = frame_elem;
-      loraRx_frame = loraRx_frame.substr(frame_elem.length());
-      loraRx_frame = loraRx_frame.erase(0, 1);
+      // frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
+      // frame_array[0] = frame_elem;
+      // loraRx_frame = loraRx_frame.substr(frame_elem.length());
+      // loraRx_frame = loraRx_frame.erase(0, 1);
      
 
-      if(frame_array[0]=="R4T" || frame_array[0]=="R4A"){  
+      if(loraCommandTanwa_Rx.lora_dev_id == 0x04 || loraCommandTanwa_Rx.lora_dev_id == 0x05 || loraCommandTanwa_Rx.lora_dev_id == 0x00){  
          int i = 1;
-        do {//decomposition of the frame
+        // do {//decomposition of the frame
           
-              frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
-              frame_array[i] = frame_elem;
-              loraRx_frame = loraRx_frame.substr(frame_elem.length());
-              loraRx_frame = loraRx_frame.erase(0, 1);
-              i++;
-              cout<<"lora = "<<frame_elem<<endl;
+        //       frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
+        //       frame_array[i] = frame_elem;
+        //       loraRx_frame = loraRx_frame.substr(frame_elem.length());
+        //       loraRx_frame = loraRx_frame.erase(0, 1);
+        //       i++;
+        //       cout<<"lora = "<<frame_elem<<endl;
 
-          } while (loraRx_frame.compare("") != 0);
+        //   } while (loraRx_frame.compare("") != 0);
 
-          frame_function = frame_array[1];
+          frame_function = loraCommandTanwa_Rx.command;
 
           switch(resolveOption(frame_function)){
 
             case PLSS_:
-              if(xQueueSend(stm.loraTxQueue, (void*)data, 0) == pdTRUE){
+              LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
+              pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
+              bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
+              if (!status)
+              {
+                  printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
+              }
+              if(xQueueSend(stm.loraTxQueue, (void*)&data_buff, 0) == pdTRUE){
+
                 Serial.print("ESP NOW SEND VIA LORA: ");
                 // Serial.println(data);//debug
               }

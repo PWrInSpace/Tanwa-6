@@ -1,6 +1,8 @@
- #include "../include/tasks/tasks.h"
+#include "../include/tasks/tasks.h"
 #include <EEPROM.h>
+#include "lora.pb.h"
 
+ LoRaFrameTanwa loraFrameTanwa;
  char data[SD_FRAME_SIZE] = {};
  PWRData pwrData;
  bool lastWeightFlag = false;
@@ -16,7 +18,6 @@
   int turnVar = 0;
   DataFrame dataFrame;
 
-   
   xSemaphoreTake(stm.i2cMutex, pdTRUE);
   expander.setPinMode(0,B,INPUT); //input for abort button
   xSemaphoreGive(stm.i2cMutex);
@@ -104,37 +105,66 @@
       turnVar = 1;
 
     
-    dataFrame.tankWeight = rxDataBtl.weight;
-    dataFrame.tankWeightRaw = (uint32_t) rxDataBtl.weight_raw;
+    loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
+    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
     
-    dataFrame.rocketWeight = rxDataRck.weight;
-    dataFrame.rocketWeightRaw = (uint32_t) rxDataRck.weight_raw;
+    loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
+    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
 
     //TODO dodać zapis butli
-    snprintf(data, sizeof(data), "%.2f", dataFrame.rocketWeight);
+    snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
     Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
-    dataFrame.vbat = voltageMeasure(VOLTAGE_MEASURE);
+    loraFrameTanwa.vbat = voltageMeasure(VOLTAGE_MEASURE);
     //### memcpy(dataFrame.motorState, pwrData.motorState, sizeof(uint8_t[5]));
-    dataFrame.motorState_1 = pwrData.motorState[0];
-    dataFrame.motorState_2 = pwrData.motorState[1];
-    dataFrame.motorState_3 = pwrData.motorState[2];
-    dataFrame.motorState_4 = pwrData.motorState[3];
+    loraFrameTanwa.motorState_1 = pwrData.motorState[0];
+    loraFrameTanwa.motorState_2 = pwrData.motorState[1];
+    loraFrameTanwa.motorState_3 = pwrData.motorState[2];
+    loraFrameTanwa.motorState_4 = pwrData.motorState[3];
 
   
 
-    dataFrame.tanWaState = StateMachine::getCurrentState();
+    loraFrameTanwa.tanWaState = StateMachine::getCurrentState();
     Serial.println(analogRead(IGN_TEST_CON_1));
     Serial.println(analogRead(IGN_TEST_CON_2));
-    dataFrame.igniterContinouity_1 = analogRead(IGN_TEST_CON_1) > 1000;
-    dataFrame.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
+    loraFrameTanwa.igniterContinouity_1 = analogRead(IGN_TEST_CON_1) > 1000;
+    loraFrameTanwa.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
+
+    if(rxDataRck.request == ANSWER){
+        loraFrameTanwa.hxRequest = 1;
+    }else if(rxDataRck.request == ANSWER){
+        loraFrameTanwa.hxRequest = 2;
+    }else if(rxDataRck.request == WORK){
+        loraFrameTanwa.hxRequest = 3;
+    }else{
+        loraFrameTanwa.hxRequest = 0;
+    }
+
+    dataFrame.tanWaState = loraFrameTanwa.tanWaState;
+    dataFrame.pressureSensor = loraFrameTanwa.pressureSensor;
+    dataFrame.solenoid_fill = loraFrameTanwa.solenoid_fill;
+    dataFrame.solenoid_depr = loraFrameTanwa.solenoid_depr;
+    dataFrame.tankHeating = loraFrameTanwa.tankHeating;
+    dataFrame.abortButton = loraFrameTanwa.abortButton;
+    dataFrame.igniterContinouity_1 = loraFrameTanwa.igniterContinouity_1;
+    dataFrame.igniterContinouity_2 = loraFrameTanwa.igniterContinouity_2;
     dataFrame.hxRequest = rxDataRck.request;
+    dataFrame.vbat = loraFrameTanwa.vbat;
+    dataFrame.motorState_1 = loraFrameTanwa.motorState_1;
+    dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
+    dataFrame.motorState_3 = loraFrameTanwa.motorState_3;
+    dataFrame.motorState_4 = loraFrameTanwa.motorState_4;
+    dataFrame.rocketWeight_val = loraFrameTanwa.rocketWeight_val;
+    dataFrame.tankWeight_val = loraFrameTanwa.tankWeight_val;
+    dataFrame.rocketWeightRaw_val = loraFrameTanwa.rocketWeightRaw_val;
+    dataFrame.tankWeightRaw_val = loraFrameTanwa.tankWeightRaw_val;
 
     createDataFrame(dataFrame, data);
     Serial.println(data);
-    xQueueSend(stm.loraTxQueue, (void*)data, 0);
+
+    xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
@@ -207,20 +237,21 @@
 
     Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
-    dataFrame.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
-    Serial.print("PRESSURE in bars: "); Serial.println(dataFrame.pressureSensor);
+    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
+    Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
  
 
-    Serial.print("TANK WEIGHT: "); Serial.println(dataFrame.tankWeight);
-    Serial.print("ROCKET WEIGHT: "); Serial.println(dataFrame.rocketWeight);
-    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(dataFrame.rocketWeightRaw);
+    Serial.print("TANK WEIGHT: "); Serial.println(loraFrameTanwa.tankWeight_val);
+    Serial.print("ROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
+    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(loraFrameTanwa.rocketWeightRaw_val);
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
-    Serial.print("continuity 1 "); Serial.println(dataFrame.igniterContinouity_1);
-    Serial.print("continuity 2 "); Serial.println(dataFrame.igniterContinouity_2);
-    Serial.print("HX REQUEST "); Serial.println(dataFrame.hxRequest);
+    Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
+    Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
+    Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest);
 
-  
+
+    // esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 

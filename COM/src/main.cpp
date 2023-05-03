@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "../include/tasks/tasks.h"
+#include "lora.pb.h"
+#include "pb_decode.h"
+#include "pb_encode.h"
 #include "../include/config/config.h"
 #include "../include/structs/SoftToolsManagment.h"
 #include "../include/structs/commStructs.h"
@@ -122,8 +125,8 @@ void setup() {
 
   stm.sdQueue = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
   stm.sdQueue_lastWeight = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
-  stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(char[LORA_TX_FRAME_SIZE]));
-  stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(char[LORA_RX_FRAME_SIZE]));
+  stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(uint8_t[LORA_TX_FRAME_SIZE]));
+  stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(LoRaFrameTanwa[LORA_RX_FRAME_SIZE]));
   stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
   stm.espNowRxQueueHxRck = xQueueCreate(10, sizeof(RxData_Hx));
   stm.espNowRxQueueHxBtl =  xQueueCreate(10, sizeof(RxData_Hx)); 
