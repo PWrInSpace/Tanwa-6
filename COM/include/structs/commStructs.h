@@ -24,6 +24,11 @@ struct TxData{
   uint16_t commandValue;
 };
 
+struct RxData_OBC{
+  uint32_t command;
+  int32_t commandValue;
+};
+
 struct TxData_Hx{
   String request;
   float offset;

@@ -11,7 +11,7 @@
  extern RxData_Hx rxDataRck;
  extern RxData_Hx rxDataBtl;
  extern TxData_Hx txDataRck;
- extern TxData_Hx txDataRck;
+
 
  void dataTask(void *arg){
   uint32_t abort_count = 0;
@@ -23,18 +23,7 @@
   xSemaphoreTake(stm.i2cMutex, pdTRUE);
   expander.setPinMode(0,B,INPUT); //input for abort button
   xSemaphoreGive(stm.i2cMutex);
- 
-  //HX711
-  // rckWeight.begin(HX1_SDA, HX1_SCL);
-  //rckWeight.set_gain(128);
-  //rckWeight.wait_ready_timeout(); 
-  // rckWeight.set_scale(temp_cal_factor);
-  
 
-  // Serial.print("ROCKET CAL FAC  "); Serial.println(rckWeight.get_scale(),3);
- 
-  // rckWeight.tare();
-  // Serial.print("ROCKET OFFSET  "); Serial.println(rckWeight.get_offset());
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
   vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -57,20 +46,7 @@
   vTaskDelay(3000 / portTICK_PERIOD_MS);
 
 
-  // tankWeight.begin(HX2_SDA, HX2_SCL); //UWAGA!!!!!!!!!!!! 
-  //tankWeight.set_gain(128);
-  //tankWeight.wait_ready_timeout(); 
-  // tankWeight.set_scale(BIT_TO_GRAM_RATIO_TANK);
-  // tankWeight.set_offset(OFFSET_TANK);
-  // while (!tankWeight.wait_ready_retry() && !rckWeight.wait_ready_retry())
-  // {
-  //   vTaskDelay(1000 / portTICK_PERIOD_MS);
-  // }
-
-  // while (!tankWeight.wait_ready_retry())
-  // {
-  //   vTaskDelay(1000 / portTICK_PERIOD_MS);
-  // }
+ 
 
 
   // !!!//DEBUG
@@ -246,7 +222,7 @@
 
 
     // esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
-    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
+    esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }

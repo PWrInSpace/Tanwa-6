@@ -60,9 +60,6 @@ bool SDCard::write(String path, char *dataFrame, char* mode){
 }
 
 
-
-
-
 ///
 uint8_t SDCard::read(String path, char* mode){
     uint8_t buff;

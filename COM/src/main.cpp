@@ -30,29 +30,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
- 
- 
-
-  // EEPROM.begin(EEPROM_SIZE);
-  
-  // int eeprom_temp_tab[6];
-
-  // for (int i = 0; i<6; i++){
-  //   eeprom_temp_tab[i] = EEPROM.read(i);
-  //   //Serial.print("EEPROM TAB  "); Serial.println(eeprom_temp_tab[i]);
-  // }
-
-
-  // temp_cal_factor =(10*eeprom_temp_tab[4]+1*eeprom_temp_tab[3]+0.1*eeprom_temp_tab[2]+0.01*eeprom_temp_tab[1] + 0.001*eeprom_temp_tab[0]);
-
-  // if(eeprom_temp_tab[5]==1)
-  //   temp_cal_factor = temp_cal_factor *(-1);
-
-
-  // Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
-  
-  
-   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
   //ledcSetup(0,2000,8);// PWM FOR BUZZER
  // ledcAttachPin(BUZZER, 0);
@@ -103,18 +81,13 @@ void setup() {
       // expander.setPinPullUp(6,A,OFF);// LED8
       // expander.setPinPullUp(5,A,ON);// LED9
       // expander.setPinPullUp(4,A,OFF);// LED10
-
-
-
     }
 
-
-   
-  
  //############################
   nowInit();
-  // nowAddPeer(adressObc, 0);
+  nowAddPeer(adressObc, 0);
   nowAddPeer(adressHxRck, 0);
+  nowAddPeer(adressHxBtl, 0);
   canInit();
 
 
@@ -165,9 +138,6 @@ void setup() {
   StateMachine::changeStateRequest(States::IDLE);
   
   vTaskDelete(NULL);
-
-  
 }
 
 void loop() {}
-

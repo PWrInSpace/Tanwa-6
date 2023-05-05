@@ -15,121 +15,264 @@ TxData_Hx txDataBtl;
 uint8_t data_buff[SD_FRAME_SIZE];
 extern bool lastWeightFlag;
 
-
-
-enum FrameStates {
-    PLSS_,
-    TANK_,
-    DEPR_,
-    QD_,
-    ARM_,
-    DISARM_,
-    IGNITER_,
-    TARE_RCK_,
-    CALIBRATE_RCK_,
-    TARE_TANK_,
-    CALIBRATE_TANK_,
-    SOFT_RESTART_ESP_,
-    SOFT_RESTART_STM_,
-    SET_CAL_FACTOR_,
-    STAT_,
-    HOLD_IN_,
-    HOLD_OUT_,
-    ABORT_,
-    INVALID
-};
-
-
-FrameStates resolveOption(uint32_t input) {
-    if( input == 0x11 ) return PLSS_;
-    if( input ==  0x22) return TANK_;
-    if( input == 0x33 ) return DEPR_;
-    if( input == 0x44 ) return QD_;
-    if( input == 0x55 ) return ARM_;
-    if( input == 0x66 ) return DISARM_;
-    if( input == 0x77 ) return IGNITER_;
-    if( input == 0x88 ) return TARE_RCK_;
-    if( input == 0x99 ) return CALIBRATE_RCK_;
-    if( input == 0xAA ) return TARE_TANK_;
-    if( input == 0xBB ) return CALIBRATE_TANK_;
-    if( input == 0xCC ) return SOFT_RESTART_ESP_;
-    if( input == 0xDD ) return SOFT_RESTART_STM_;
-    if( input == 0xEE ) return SET_CAL_FACTOR_;
-    if( input == 0xFF) return STAT_;
-    if( input == 0x990) return HOLD_IN_;
-    if( input == 0x100 ) return HOLD_OUT_;
-    if( input == 0x420 ) return ABORT_;
-    //...
-    return INVALID;
- }
-
-
 void rxHandlingTask(void* arg){
 
   RxData_Hx rxData_temp;
+  RxData_OBC rxDataOBC_temp;
   LoRaCommandTanwa loraCommandTanwa_Rx = LoRaCommandTanwa_init_zero;
 
-  uint8_t loraRx[LORA_RX_FRAME_SIZE];
-
   while(1){
-    // Serial.println("RX TASK");
-    //ESPNOW
-    // if(xQueueReceive(stm.espNowRxQueue, (void*)&espNowCommand, 0) == pdTRUE){
-    //   Serial.print("ESP NOW: ");
-    //   Serial.println(espNowCommand.command);
-    //   Serial.println(espNowCommand.commandValue);
+    Serial.println("RX TASK");
+    // ESPNOW
+    if(xQueueReceive(stm.espNowRxQueueObc, (void*)&rxDataOBC_temp, 0) == pdTRUE){
+      Serial.print("ESP NOW: ");
+      Serial.println(rxDataOBC_temp.command);
+      Serial.println(rxDataOBC_temp.commandValue);
 
-    //   switch(espNowCommand.command){
-    //     case PLSS_:
-    //       if(xQueueSend(stm.loraTxQueue, (void*)data, 0) == pdTRUE){
-    //         Serial.print("ESP NOW SEND VIA LORA: ");
-    //         // Serial.println(data);
-    //       }
-    //       break;
+      switch(rxDataOBC_temp.command){
+       
+        case STATE_ESP:{
+          StateMachine::changeStateRequest(static_cast<States>(rxDataOBC_temp.commandValue));
+          Serial.println("STATE CHANGE REQUEST");
+          break;
+        }
 
-    //     case IGNITER:
-    //       digitalWrite(FIRE1, HIGH);
-    //       digitalWrite(FIRE2, HIGH);
-    //       break;
+        case ABORT_ESP:{
+          Serial.println("#################### ABOR T###########################");
+          StateMachine::changeStateRequest(States::ABORT);
+          break;
+        }
 
-    //     case TARE_RCK:
-    //       rckWeight.tare();
-    //       break;
+        case HOLD_IN_ESP:{
+          Serial.println("hold in");
+          if(StateMachine::getCurrentState() != States::HOLD)
+          {
+            if(StateMachine::changeStateRequest(States::HOLD) == false)
+              Serial.println("ERROR HOLD IN");
+          }else
+            Serial.println("ERROR HOLD IN");
+          break;
+        }
+
+        case HOLD_OUT_ESP:{
+          Serial.println("hold out");
+          if(StateMachine::getCurrentState() == States::HOLD)
+          {
+            if(StateMachine::changeStateRequest(States::HOLD) == false)
+              Serial.println("ERROR HOLD OUT");
+          }else
+            Serial.println("ERROR HOLD OUT");
+           
+          break;
+        }
+
+        case FILL_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_FILL, rxDataOBC_temp.commandValue);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("MOTOOOR FILL\n");
+            break;
+        }
+          
+        case FILL_TIME_ESP:{
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_FILL, TIMED_OPEN_VALVE, rxDataOBC_temp.commandValue);
+          xSemaphoreGive(stm.i2cMutex);
+          printf("MOTOOOR FILL TIME OPEN\n");
+          break;
+        }
         
-    //     case CALIBRATE_RCK:
-    //       rckWeight.calibration(espNowCommand.commandValue);
-    //       break;
-
-    //     case TARE_TANK:
-    //       tankWeight.tare();
-    //       break;
-
-    //     case CALIBRATE_TANK:
-    //       tankWeight.calibration(espNowCommand.commandValue);
-    //       break;
-
-    //     case SOFT_ARM:
-    //       digitalWrite(ARM_PIN, HIGH);
-    //       break;
-
-    //     case SOFT_DISARM:
-    //       digitalWrite(ARM_PIN, LOW);
-    //       break;
+        case DEPR_ESP:{
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_DEPR, rxDataOBC_temp.commandValue);
+          xSemaphoreGive(stm.i2cMutex);
+          printf("MOTOOOR DEPR\n");
+          break;
+        }
         
-    //     case SOFT_RESTART:
-    //       //RESET ESP COMMAND
-    //       ESP.restart();
-    //       //RESET STM
-    //       // pwrCom.sendCommandMotor(0, RESET_COMMAND);
-    //       break;
+        case QD_ESP:{
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, rxDataOBC_temp.commandValue);
+          xSemaphoreGive(stm.i2cMutex);
+          printf("MOTOOOR QD\n");
+          break;
+        }
 
-    //     default:
-    //       xSemaphoreTake(stm.i2cMutex, pdTRUE);
-    //       pwrCom.sendCommand(&espNowCommand);
-    //       xSemaphoreGive(stm.i2cMutex);
-    //       break;
-    //   }
-    // }
+        case SOFT_ARM_ESP:{
+          digitalWrite(ARM_PIN, HIGH);
+          break;
+        }
+
+        case SOFT_DISARM_ESP:{
+          digitalWrite(ARM_PIN, LOW);
+          break;
+        }
+        
+        case FIRE_ESP:{
+          digitalWrite(FIRE1, HIGH);
+          digitalWrite(FIRE2, HIGH);
+          break;
+        }
+        
+        case SOFT_RESTART_ESP_ESP:{
+          esp_restart();
+          break;
+        }
+
+        case SOFT_RESTART_STM_ESP:{
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          expander.setPinX(4,A,OUTPUT,OFF);
+          xSemaphoreGive(stm.i2cMutex);
+    
+          Serial.println("################# RESET STM ####################");
+          vTaskDelay(100 / portTICK_PERIOD_MS);
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          expander.setPinX(4,A,OUTPUT,ON); //TODO CHECK THIS PIN!
+          xSemaphoreGive(stm.i2cMutex);
+          break;
+        }
+        
+        case CALIBRATE_RCK_ESP:{
+          txDataRck.request = ASK;
+          txDataRck.offset = rxDataOBC_temp.commandValue;
+          txDataRck.command = CALIBRATE_HX;
+          esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          vTaskDelay(10000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case TARE_RCK_ESP:{
+          txDataRck.request = ASK;
+          txDataRck.command = TARE_HX;
+          esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
+          break;
+        }
+        
+        case SET_CAL_FACTOR_RCK_ESP:{
+          txDataRck.request = ASK;
+          txDataRck.offset = rxDataOBC_temp.commandValue;
+          txDataRck.command = SET_CAL_FACTOR_HX;
+          esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          vTaskDelay(10000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case SET_OFFSET_RCK_ESP:{
+          txDataRck.request = ASK;
+          txDataRck.offset = rxDataOBC_temp.commandValue;
+          txDataRck.command = SET_OFFSET_HX;
+          esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          vTaskDelay(10000 / portTICK_PERIOD_MS);
+          break;
+        }
+        
+        case CALIBRATE_TANK_ESP:{
+          txDataBtl.request = ASK;
+          txDataBtl.offset = rxDataOBC_temp.commandValue;
+          txDataBtl.command = CALIBRATE_HX;
+          esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+          vTaskDelay(10000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case TARE_TANK_ESP:{
+          txDataBtl.request = ASK;
+          txDataBtl.command = TARE_HX;
+          esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case SET_CAL_FACTOR_TANK_ESP:{
+          txDataBtl.request = ASK;
+          txDataBtl.offset = rxDataOBC_temp.commandValue;
+          txDataBtl.command = SET_CAL_FACTOR_HX;
+          esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case SET_OFFSET_TANK_ESP:{
+          txDataBtl.request = ASK;
+          txDataBtl.offset = rxDataOBC_temp.commandValue;
+          txDataBtl.command = SET_OFFSET_HX;
+          esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
+          break;
+        }
+
+        case PLSS_ESP:{
+          LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
+          pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
+          bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
+          if (!status)
+          {
+              printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
+          }
+          if(xQueueSend(stm.loraTxQueue, (void*)&data_buff, 0) == pdTRUE){
+
+            Serial.print("ESP NOW SEND VIA LORA: ");
+            // Serial.println(data);//debug
+          }  
+          break;
+        }
+
+        case INTERFACE_RCK_ESP:{
+          if(rxDataOBC_temp.commandValue == INTERFACE_CAN_ESP)
+          {
+            ////
+          }else if(rxDataOBC_temp.commandValue == INTERFACE_ESPNOW_ESP)
+          {
+              ////
+          }
+          break;
+        }
+
+        
+        case INTERFACE_TANK_ESP:{
+          if(rxDataOBC_temp.commandValue == INTERFACE_CAN_ESP)
+          {
+            /////
+          }else if(rxDataOBC_temp.commandValue == INTERFACE_ESPNOW_ESP)
+          {
+            ////
+          }
+        
+          break;
+        }
+      
+        case INTERFACE_MCU_ESP:{
+          if(rxDataOBC_temp.commandValue == INTERFACE_CAN_ESP)
+          {
+           ////
+          }else if(rxDataOBC_temp.commandValue == INTERFACE_I2C_ESP)
+          {
+              /////
+          }
+        
+          break;
+        }
+
+        case LORA_FREQ_ESP:{
+          ////
+          break;
+        }
+
+        case LORA_TIME_ESP:{
+          ////
+          break;
+        }
+
+    
+        default:{
+          // xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          // pwrCom.sendCommand(&espNowCommand);
+          // xSemaphoreGive(stm.i2cMutex);
+          break;
+        }
+      }
+    }
 
       //TODO FLAG FROM HX THAT THERE IS NO COMMUNICATION
      if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxData_temp, 0) == pdTRUE){
@@ -157,193 +300,259 @@ void rxHandlingTask(void* arg){
     //LORA 
     if(xQueueReceive(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx, 0) == pdTRUE){
       Serial.print("LORAAAAAAAAAAAAAAAAAAAAAAA: ");
-   
-
-
-      
-      // Serial.println(loraRx);
-    //parser
-      // string frame_array [50];
-      // string loraRx_frame = loraRx;
-      // string delimiter = ";";
-      // string frame_elem;
-      uint32_t frame_function;
-      
-      // frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
-      // frame_array[0] = frame_elem;
-      // loraRx_frame = loraRx_frame.substr(frame_elem.length());
-      // loraRx_frame = loraRx_frame.erase(0, 1);
-     
-
+      uint32_t lora_command;
+      uint32_t lora_payload;
+    
       if(loraCommandTanwa_Rx.lora_dev_id == 0x04 || loraCommandTanwa_Rx.lora_dev_id == 0x05 || loraCommandTanwa_Rx.lora_dev_id == 0x00){  
-         int i = 1;
-        // do {//decomposition of the frame
-          
-        //       frame_elem = loraRx_frame.substr(0, loraRx_frame.find(delimiter));
-        //       frame_array[i] = frame_elem;
-        //       loraRx_frame = loraRx_frame.substr(frame_elem.length());
-        //       loraRx_frame = loraRx_frame.erase(0, 1);
-        //       i++;
-        //       cout<<"lora = "<<frame_elem<<endl;
+        int i = 1;
+    
+        lora_command = loraCommandTanwa_Rx.command;
+        lora_payload = loraCommandTanwa_Rx.payload;
 
-        //   } while (loraRx_frame.compare("") != 0);
+  
+        switch(lora_command){
 
-          frame_function = loraCommandTanwa_Rx.command;
+          case STATE_ESP:{
+            StateMachine::changeStateRequest(static_cast<States>(lora_payload));
+            Serial.println("STATE CHANGE REQUEST");
+            break;
+          }
 
-          switch(resolveOption(frame_function)){
+          case ABORT_ESP:{
+            Serial.println("####################  ABORT  ###########################");
+            StateMachine::changeStateRequest(States::ABORT);
+            break;
+          }
 
-            case PLSS_:{
-              LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
-              pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
-              bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
-              if (!status)
-              {
-                  printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
-              }
-              if(xQueueSend(stm.loraTxQueue, (void*)&data_buff, 0) == pdTRUE){
+          case HOLD_IN_ESP:{
+            Serial.println("hold in");
+            if(StateMachine::getCurrentState() != States::HOLD)
+            {
+              if(StateMachine::changeStateRequest(States::HOLD) == false)
+                Serial.println("ERROR HOLD IN");
+            }else
+              Serial.println("ERROR HOLD IN");
+            break;
+          }
 
-                Serial.print("ESP NOW SEND VIA LORA: ");
-                // Serial.println(data);//debug
-              }
-              break;
-            }
-
-            case TANK_:{
-              xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              // pwrCom.sendCommandMotor(MOTOR_FILL /*TODO add payload decoder*/);
-              xSemaphoreGive(stm.i2cMutex);
-              printf("MOTOOOR FILL\n");
-              break;
-            }
-            case DEPR_:
-              xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              // pwrCom.sendCommandMotor(MOTOR_DEPR /*TODO add payload decoder*/);
-              xSemaphoreGive(stm.i2cMutex);
-              printf("MOTOOOOR DEPR\n");
-              break;
-
-            case QD_:{
-              xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              // pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT /*TODO add payload decoder*/);
-              xSemaphoreGive(stm.i2cMutex);
-              printf("MOTOOOR QUICK DISCONNECT\n");
-              break;
-            }
-            case ARM_:{
-              digitalWrite(ARM_PIN, HIGH);
-              break;
-            }
-
-            case DISARM_:{
-              digitalWrite(ARM_PIN, LOW);
-              break;
-            }
-
-            case IGNITER_:{
-              digitalWrite(FIRE1, HIGH);
-              digitalWrite(FIRE2, HIGH);
-              break;
-            }
-
-             case TARE_RCK_:{
-              rckWeight.tare();
-              break;
-            }
-            
-            case CALIBRATE_RCK_:{
-              // rckWeight.calibration(/*TODO add payload decoder*/);
-              Serial.print("CAL FACTOR ROCKET: "); 
-              Serial.println(rckWeight.get_scale());
-              break;
-            }
-
-            case TARE_TANK_:{
-              tankWeight.tare();
-              break;
-            }
-
-            case CALIBRATE_TANK_:{
-              // tankWeight.CustomCalibration(atoi(frame_array[3].c_str()),0);
-              // tankWeight.CustomCalibration(atoi(frame_array[2].c_str()));
-
-
-              // tankWeight.calibration(/*TODO add payload decoder*/);
-              Serial.print("CAL FACTOR TANK: "); 
-              Serial.println(tankWeight.get_scale());
-
-              break;
-            }
-
-            case SOFT_RESTART_ESP_:{
-              //RESET ESP COMMAND
-              ESP.restart();
-              break;
-            }
-
-            case SOFT_RESTART_STM_:{
-              //RESET STM
-              // pwrCom.sendCommandMotor(0, RESET_COMMAND);
-              xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              expander.setPinX(4,A,OUTPUT,OFF);
-              xSemaphoreGive(stm.i2cMutex);
-        
-              Serial.println("RESeeeeeeeeeeeeeeeET");
-              vTaskDelay(100 / portTICK_PERIOD_MS);
-              xSemaphoreTake(stm.i2cMutex, pdTRUE);
-              expander.setPinX(4,A,OUTPUT,ON);
-              xSemaphoreGive(stm.i2cMutex);
-
-              break;
-            }
-
-          case SET_CAL_FACTOR_:{
-            // if(/*TODO add payload decoder*/=="RCK"){
-            //   rckWeight.set_scale(/*TODO add payload decoder*/);
-            //   Serial.print("CAL FACTOR RCK = "); Serial.println(/*TODO add payload decoder*/);
-            // }
-            // else if (/*TODO add payload decoder*/=="TANK"){
-            //   tankWeight.set_scale(atoi(/*TODO add payload decoder*/);
-            //   Serial.print("CAL FACTOR TANK = "); Serial.println(/*TODO add payload decoder*/);
-            // }
+          case HOLD_OUT_ESP:{
+            Serial.println("hold out");
+            if(StateMachine::getCurrentState() == States::HOLD)
+            {
+              if(StateMachine::changeStateRequest(States::HOLD) == false)
+                Serial.println("ERROR HOLD OUT");
+            }else
+              Serial.println("ERROR HOLD OUT");
             
             break;
           }
 
-            case STAT_:{
-              // StateMachine::changeStateRequest(static_cast<States>(/*TODO add payload decoder*/);
-              Serial.println("STATE CHANGE REQUEST");
-              break;
-            }
-              
-            case HOLD_IN_:{
-              Serial.println("hold in");
-              if(StateMachine::getCurrentState() != States::HOLD){
-                if(StateMachine::changeStateRequest(States::HOLD) == false)
-                  Serial.println("ERROR HOLD IN");
-              }else
-                Serial.println("ERROR HOLD IN");
-              break;
-            }
-          
-            case HOLD_OUT_:{
-              Serial.println("hold out");
-              if(StateMachine::getCurrentState() == States::HOLD){
-                if(StateMachine::changeStateRequest(States::HOLD) == false)
-                  Serial.println("ERROR HOLD OUT");
-              }else
-                Serial.println("ERROR HOLD OUT");
-              break;
-            }
-
-            case ABORT_:{
-              Serial.println("ABORT");
-              StateMachine::changeStateRequest(States::ABORT);
-              break;
-            }
-
-            default:
+          case FILL_ESP:{
+              xSemaphoreTake(stm.i2cMutex, pdTRUE);
+              pwrCom.sendCommandMotor(MOTOR_FILL, lora_payload);
+              xSemaphoreGive(stm.i2cMutex);
+              printf("MOTOOOR FILL\n");
               break;
           }
+          
+          case FILL_TIME_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_FILL, TIMED_OPEN_VALVE, lora_payload);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("MOTOOOR FILL TIME OPEN\n");
+            break;
+          }
+          
+          case DEPR_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_DEPR, lora_payload);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("MOTOOOR DEPR\n");
+            break;
+          }
+          
+          case QD_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, lora_payload);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("MOTOOOR QD\n");
+            break;
+          }
+
+          case SOFT_ARM_ESP:{
+            digitalWrite(ARM_PIN, HIGH);
+            break;
+          }
+
+          case SOFT_DISARM_ESP:{
+            digitalWrite(ARM_PIN, LOW);
+            break;
+          }
+          
+          case FIRE_ESP:{
+            digitalWrite(FIRE1, HIGH);
+            digitalWrite(FIRE2, HIGH);
+            break;
+          }
+          
+          case SOFT_RESTART_ESP_ESP:{
+            esp_restart();
+            break;
+          }
+
+          case SOFT_RESTART_STM_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            expander.setPinX(4,A,OUTPUT,OFF);
+            xSemaphoreGive(stm.i2cMutex);
+      
+            Serial.println("#################RESET STM####################");
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            expander.setPinX(4,A,OUTPUT,ON); //TODO CHECK THIS PIN!
+            xSemaphoreGive(stm.i2cMutex);
+            break;
+          }
+          
+          case CALIBRATE_RCK_ESP:{
+            txDataRck.request = ASK;
+            txDataRck.offset = lora_payload;
+            txDataRck.command = CALIBRATE_HX;
+            esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            break;
+          }
+
+          case TARE_RCK_ESP:{
+            txDataRck.request = ASK;
+            txDataRck.command = TARE_HX;
+            esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            break;
+          }
+          
+          case SET_CAL_FACTOR_RCK_ESP:{
+            txDataRck.request = ASK;
+            txDataRck.offset = lora_payload;
+            txDataRck.command = SET_CAL_FACTOR_HX;
+            esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            break;
+          }
+
+          case SET_OFFSET_RCK_ESP:{
+            txDataRck.request = ASK;
+            txDataRck.offset = lora_payload;
+            txDataRck.command = SET_OFFSET_HX;
+            esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            break;
+          }
+          
+          case CALIBRATE_TANK_ESP:{
+              txDataBtl.request = ASK;
+              txDataBtl.offset = lora_payload;
+              txDataBtl.command = CALIBRATE_HX;
+              esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+              vTaskDelay(10000 / portTICK_PERIOD_MS);
+              break;
+          }
+
+          case TARE_TANK_ESP:{
+            txDataBtl.request = ASK;
+            txDataBtl.command = TARE_HX;
+            esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            break;
+          }
+
+          case SET_CAL_FACTOR_TANK_ESP:{
+            txDataBtl.request = ASK;
+            txDataBtl.offset = lora_payload;
+            txDataBtl.command = SET_CAL_FACTOR_HX;
+            esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            break;
+          }
+
+          case SET_OFFSET_TANK_ESP:{
+            txDataBtl.request = ASK;
+            txDataBtl.offset = lora_payload;
+            txDataBtl.command = SET_OFFSET_HX;
+            esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            break;
+          }
+
+          case PLSS_ESP:{
+            LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
+            pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
+            bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
+            if (!status)
+            {
+                printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
+            }
+            if(xQueueSend(stm.loraTxQueue, (void*)&data_buff, 0) == pdTRUE){
+
+              Serial.print("ESP NOW SEND VIA LORA: ");
+              // Serial.println(data);//debug
+            }  
+            break;
+          }
+
+          case INTERFACE_RCK_ESP:{
+            if(lora_payload == INTERFACE_CAN_ESP)
+            {
+              ////
+            }else if(lora_payload == INTERFACE_ESPNOW_ESP)
+            {
+                ////
+            }
+            break;
+          }
+
+          
+          case INTERFACE_TANK_ESP:{
+            if(lora_payload == INTERFACE_CAN_ESP)
+            {
+              /////
+            }else if(lora_payload == INTERFACE_ESPNOW_ESP)
+            {
+              ////
+            }
+          
+            break;
+          }
+        
+          case INTERFACE_MCU_ESP:{
+            if(lora_payload == INTERFACE_CAN_ESP)
+            {
+            ////
+            }else if(lora_payload == INTERFACE_I2C_ESP)
+            {
+                /////
+            }
+          
+            break;
+          }
+
+          case LORA_FREQ_ESP:{
+            ////
+            break;
+          }
+
+          case LORA_TIME_ESP:{
+            ////
+            break;
+          }
+
+      
+          default:{
+            // xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            // pwrCom.sendCommand(&espNowCommand);
+            // xSemaphoreGive(stm.i2cMutex);
+            break;
+          }
+        }
       }
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
