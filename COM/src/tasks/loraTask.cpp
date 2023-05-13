@@ -31,10 +31,10 @@ static void lora_read_message_and_put_on_queue(void) {
     status_rx = pb_decode(&stream_rx, LoRaCommandTanwa_fields, &loraCommandTanwa_Rx_loc);
 
     if (!status_rx)
-          {
-              printf("Decoding failed: %s\n", PB_GET_ERROR(&stream_rx));
-          }
-    xQueueSend(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx_loc, 0);
+    {
+        printf("Decoding failed: %s\n", PB_GET_ERROR(&stream_rx));
+    }
+    xQueueSend(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx_loc, 0); ///// HEREE
   }
 }
 

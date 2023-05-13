@@ -100,7 +100,7 @@ void setup() {
   stm.sdQueue_lastWeight = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
   stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(uint8_t[LORA_TX_FRAME_SIZE]));
   stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(LoRaFrameTanwa[LORA_RX_FRAME_SIZE]));
-  stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
+  stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(RxData_OBC));
   stm.espNowRxQueueHxRck = xQueueCreate(10, sizeof(RxData_Hx));
   stm.espNowRxQueueHxBtl =  xQueueCreate(10, sizeof(RxData_Hx)); 
 
@@ -111,7 +111,7 @@ void setup() {
 
 
 //  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
- // xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
+//  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
   xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);

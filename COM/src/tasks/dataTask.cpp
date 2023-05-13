@@ -133,18 +133,19 @@
     createDataFrame(dataFrame, data);
     Serial.println(data);
 
-    xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
+    // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
       //TODO check polarity of pin ABORT on esp pull up or down
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
       abrtButton = !expander.getPin(0,B);
+      Serial.println(abrtButton);
       SD_cont = !expander.getPin(7,A);
       xSemaphoreGive(stm.i2cMutex);
 
       //TODO UNCOMMENT + change pin or solder correct pull up
-      if(!abrtButton){// ABORT BUTTON
-
+      if(abrtButton == 1){// ABORT BUTTON
+        
         xSemaphoreTake(stm.i2cMutex, pdTRUE);
         expander.setPinX(5,A,OUTPUT, OFF);
         xSemaphoreGive(stm.i2cMutex);
@@ -194,6 +195,7 @@
     // xSemaphoreGive(stm.i2cMutex);
     
     Serial.println("\n\n\nCOM DATA:");
+    Serial.print("TANWA STATE: "); Serial.println(loraFrameTanwa.tanWaState);
     Serial.print("SD status: "); Serial.println(SD_cont);
     Serial.print("ABORT: "); Serial.println(abrtButton);
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
@@ -222,7 +224,7 @@
 
 
     // esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
-    esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
+    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }

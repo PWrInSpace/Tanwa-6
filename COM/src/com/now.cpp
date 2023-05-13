@@ -40,10 +40,11 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     TxData txData;
+    RxData_OBC rxDataOBC;
     RxData_Hx rxDataRck;
     RxData_Hx rxDataBtl;
     if (adressCompare(mac, adressHxRck)) {
-    //   Serial.println("Data");
+      // Serial.println("Data HXHXHXHXHHXHXHH");
 
 
       memcpy((void*) &rxDataRck, (uint16_t *)incomingData, sizeof(RxData_Hx));
@@ -56,13 +57,24 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
       }
     }
     else if(adressCompare(mac, adressObc)) {
-        memcpy((void*) &txData, (uint16_t *)incomingData, sizeof(TxData));
-        if(xQueueSend(stm.espNowRxQueueObc, (void*)&txData, 0) == pdFALSE){
+      if (len == sizeof(uint8_t)) {
+        // TO DO: zmiana stanu
+          // StateMachine::changeStateRequest(static_cast<States>(*incomingData));
+          // Serial.println("STATE CHANGE REQUEST");
+
+        return;       
+      }
+      Serial.println("Data OBCOBCOBCOBCOBCOBCOBCOC");
+        
+        
+        memcpy((void*) &rxDataOBC, incomingData, sizeof(RxData_OBC));
+        if(xQueueSend(stm.espNowRxQueueObc, (void*)&rxDataOBC, 0) == pdFALSE){
         //TODO ERROR HANDLING
         Serial.println("esp now queue error!");
       }
     }
     else if(adressCompare(mac, adressHxBtl)) {
+      Serial.println("Data HXHXHXHXHHXHXHH22222222222222222222222");
         memcpy((void*) &rxDataBtl, (uint16_t *)incomingData, sizeof(RxData_Hx));
         if(xQueueSend(stm.espNowRxQueueHxBtl, (void*)&rxDataBtl, 0) == pdFALSE){
         //TODO ERROR HANDLING

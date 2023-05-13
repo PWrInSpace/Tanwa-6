@@ -55,7 +55,7 @@ static String dataFileName_lastWeight= "/lastWeight_";
 
 #define FILL_ESP 0x10
 #define FILL_TIME_ESP 0x15
-#define DEPR_ESP 0x11
+#define DEPR_ESP 0x20
 #define QD_ESP 0x30
 #define VALVE_OPEN_ESP 0x01
 #define VALVE_CLOSE_ESP 0x00

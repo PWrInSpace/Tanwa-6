@@ -46,7 +46,7 @@ void setup() {
   nowInit();
   nowAddPeer(adressTanwa, 0);
 
-  canInit();
+  // canInit();
 
   stm.espNowRxQueue = xQueueCreate(10, sizeof(RxData));
   // stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
