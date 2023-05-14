@@ -64,7 +64,7 @@ void setup() {
     expander.setPinX(1,B,OUTPUT, OFF);
     expander.setPinX(2,B,OUTPUT, ON);
     expander.setPinX(3,B,OUTPUT, ON);
-    expander.setPinX(4,B,OUTPUT, OFF);
+    expander.setPinX(4,B,OUTPUT, ON);
     expander.setPinX(5,B,OUTPUT, ON);
     expander.setPinX(6,B,OUTPUT, ON);
     expander.setPinX(7,B,OUTPUT, ON);
@@ -112,9 +112,9 @@ void setup() {
 
 //  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
 //  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 5, &stm.rxHandlingTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
-  xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(dataTask, "Data task", 40000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 20000, NULL, 1, &stm.buzzerTask, APP_CPU_NUM);
 

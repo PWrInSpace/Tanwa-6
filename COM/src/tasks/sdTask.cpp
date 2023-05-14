@@ -79,7 +79,7 @@ void sdTask(void *arg){
       xSemaphoreTake(stm.spiMutex, portMAX_DELAY);  
 
       strcat(data, ";");
-      if(!mySD.write(dataPath_lastWeight, data, "w")){
+      if(!mySD.write(dataPath_lastWeight, data, "a")){
         //SD_WRITE_ERROR
       }
         

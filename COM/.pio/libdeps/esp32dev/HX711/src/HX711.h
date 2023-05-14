@@ -86,7 +86,6 @@ class HX711
 
 		// wakes up the chip after power down mode
 		void power_up();
-		// void calibration(int known_mass);
 };
 
 #endif /* HX711_h */

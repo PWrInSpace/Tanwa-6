@@ -38,7 +38,7 @@
     Serial.println(txDataRck.request);
     Serial.println(txDataRck.offset);
     Serial.println(txDataRck.command);
-    vTaskDelay(5000 / portTICK_PERIOD_MS);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
   Serial.println("OUT OF LOOP");
   
@@ -97,8 +97,8 @@
   
 
     loraFrameTanwa.tanWaState = StateMachine::getCurrentState();
-    Serial.println(analogRead(IGN_TEST_CON_1));
-    Serial.println(analogRead(IGN_TEST_CON_2));
+    // Serial.println(analogRead(IGN_TEST_CON_1));
+    // Serial.println(analogRead(IGN_TEST_CON_2));
     loraFrameTanwa.igniterContinouity_1 = analogRead(IGN_TEST_CON_1) > 1000;
     loraFrameTanwa.igniterContinouity_2 = analogRead(IGN_TEST_CON_2) > 1000;
 
@@ -139,48 +139,46 @@
       //TODO check polarity of pin ABORT on esp pull up or down
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
       abrtButton = !expander.getPin(0,B);
-      Serial.println(abrtButton);
       SD_cont = !expander.getPin(7,A);
       xSemaphoreGive(stm.i2cMutex);
 
       //TODO UNCOMMENT + change pin or solder correct pull up
-      if(abrtButton == 1){// ABORT BUTTON
+      // if(abrtButton == 1){// ABORT BUTTON
+
+      //  Serial.println("#       ##### ABORT BUTTON #### ######");
         
-        xSemaphoreTake(stm.i2cMutex, pdTRUE);
-        expander.setPinX(5,A,OUTPUT, OFF);
-        xSemaphoreGive(stm.i2cMutex);
+      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      //   expander.setPinX(5,A,OUTPUT, OFF);
+      //   xSemaphoreGive(stm.i2cMutex);
 
-        txDataRck.request = ASK;
-        txDataRck.offset = 1000;
-        txDataRck.command = CALIBRATE_HX;
-        esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+      //   txDataRck.request = ASK;
+      //   txDataRck.offset = 1000;
+      //   txDataRck.command = CALIBRATE_HX;
+      //   esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+      //   vTaskDelay(10000 / portTICK_PERIOD_MS);
 
-      // //################### real abort content ###################
-      //   // abort_count++;
-      //   // Serial.println("==================");
-      //   // Serial.println("ABORT ++");
-      //   // Serial.println("==================");
-      //   // if(abort_count>=3){
-      //   //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      //   //   expander.setPin(4,A,OFF);
-      //   //   xSemaphoreGive(stm.i2cMutex);
-      //   //   StateMachine::changeStateRequest(States::ABORT);
-      //   //   Serial.println("ABORT BUTTON CONFIRMATION");
-      //   //}
-      //   //##########################################################
-      }
-      else{
-        abort_count = 0;
-        xSemaphoreTake(stm.i2cMutex, pdTRUE);
-        expander.setPin(4,A,ON);
-        xSemaphoreGive(stm.i2cMutex);
-      }
-
-      xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      expander.setPinX(5,A,OUTPUT, ON);
-      xSemaphoreGive(stm.i2cMutex);
-      // canSend();
+      // // //################### real abort content ###################
+      // //   // abort_count++;
+      // //   // Serial.println("==================");
+      // //   // Serial.println("ABORT ++");
+      // //   // Serial.println("==================");
+      // //   // if(abort_count>=3){
+      // //   //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      // //   //   expander.setPin(4,A,OFF);
+      // //   //   xSemaphoreGive(stm.i2cMutex);
+      // //   //   StateMachine::changeStateRequest(States::ABORT);
+      // //   //   Serial.println("ABORT BUTTON CONFIRMATION");
+      // //   //}
+      // //   //##########################################################
+      // }
+      // else{
+      //   abort_count = 0;
+      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      //   expander.setPin(4,A,ON);
+      //   expander.setPinX(5,A,OUTPUT, ON);
+      //   xSemaphoreGive(stm.i2cMutex);
+      // }
+      // // canSend();
 
 
       
@@ -194,10 +192,10 @@
     // i2cCOM.getData(&pwrData);
     // xSemaphoreGive(stm.i2cMutex);
     
-    Serial.println("\n\n\nCOM DATA:");
+    Serial.println("\nCOM DATA:");
     Serial.print("TANWA STATE: "); Serial.println(loraFrameTanwa.tanWaState);
     Serial.print("SD status: "); Serial.println(SD_cont);
-    Serial.print("ABORT: "); Serial.println(abrtButton);
+    Serial.print("ABORT BUTTON: "); Serial.println(abrtButton);
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
     Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
     Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
@@ -223,8 +221,8 @@
     Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest_RCK);
 
 
-    // esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
-    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame));
+    esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
+    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame)); //DO NOT USE FOR OBC due hx request type STRING
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }

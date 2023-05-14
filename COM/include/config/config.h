@@ -30,6 +30,7 @@ static String dataFileName_lastWeight= "/lastWeight_";
 //I2C COM COMMAND
 #define OPEN_VALVE 0x01
 #define CLOSE_VALVE 0x00
+#define STOP_VALVE 0x22
 #define TIMED_OPEN_VALVE 0x03
 #define MOTOR_FILL 0x01
 #define MOTOR_DEPR 0x02
@@ -65,6 +66,8 @@ static String dataFileName_lastWeight= "/lastWeight_";
 
 #define FIRE_ESP 0x88
 
+#define SOFT_RESTART_ESP_RCK 0x61
+#define SOFT_RESTART_ESP_BTL 0x62
 #define SOFT_RESTART_ESP_ESP 0x06
 #define SOFT_RESTART_STM_ESP 0x07
 

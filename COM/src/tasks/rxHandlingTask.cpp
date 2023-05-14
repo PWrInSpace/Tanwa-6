@@ -33,18 +33,18 @@ void rxHandlingTask(void* arg){
        
         case STATE_ESP:{
           StateMachine::changeStateRequest(static_cast<States>(rxDataOBC_temp.commandValue));
-          Serial.println("STATE CHANGE REQUEST");
+          Serial.println(" ################STATE CHANGE REQUEST #################");
           break;
         }
 
         case ABORT_ESP:{
-          Serial.println("#################### ABOR T###########################");
+          Serial.println("#################### ABORT ###########################");
           StateMachine::changeStateRequest(States::ABORT);
           break;
         }
 
         case HOLD_IN_ESP:{
-          Serial.println("hold in");
+          Serial.println(" ################# hold in ##################");
           if(StateMachine::getCurrentState() != States::HOLD)
           {
             if(StateMachine::changeStateRequest(States::HOLD) == false)
@@ -55,7 +55,7 @@ void rxHandlingTask(void* arg){
         }
 
         case HOLD_OUT_ESP:{
-          Serial.println("hold out");
+          Serial.println("################# hold out #########################");
           if(StateMachine::getCurrentState() == States::HOLD)
           {
             if(StateMachine::changeStateRequest(States::HOLD) == false)
@@ -70,7 +70,7 @@ void rxHandlingTask(void* arg){
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_FILL, rxDataOBC_temp.commandValue);
             xSemaphoreGive(stm.i2cMutex);
-            printf("MOTOOOR FILL\n");
+            printf("######## MOTOOOR FILL ###########\n");
             break;
         }
           
@@ -78,7 +78,7 @@ void rxHandlingTask(void* arg){
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_FILL, TIMED_OPEN_VALVE, rxDataOBC_temp.commandValue);
           xSemaphoreGive(stm.i2cMutex);
-          printf("MOTOOOR FILL TIME OPEN\n");
+          printf("####### MOTOOOR FILL TIME OPEN ##########\n");
           break;
         }
         
@@ -87,7 +87,7 @@ void rxHandlingTask(void* arg){
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_DEPR, rxDataOBC_temp.commandValue);
           xSemaphoreGive(stm.i2cMutex);
-          printf("MOTOOOR DEPR\n");
+          printf("################# MOTOOOR DEPR #################\n");
           break;
         }
         
@@ -95,12 +95,12 @@ void rxHandlingTask(void* arg){
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, rxDataOBC_temp.commandValue);
           xSemaphoreGive(stm.i2cMutex);
-          printf("MOTOOOR QD\n");
+          printf("################## MOTOOOR QD ################\n");
           break;
         }
 
         case SOFT_ARM_ESP:{
-          Serial.println("ARMING");
+          Serial.println("################ ARMING ######################");
           digitalWrite(ARM_PIN, HIGH);
           break;
         }
@@ -122,20 +122,36 @@ void rxHandlingTask(void* arg){
           break;
         }
 
+        case SOFT_RESTART_ESP_RCK:{
+     
+          txDataRck.command = SOFT_RESTART_HX;
+          esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          perror("esp_now_send");
+          Serial.println("############## SENDING RESET RCK ################");
+          Serial.println(txDataRck.command);
+          break;
+        }
+
+        case SOFT_RESTART_ESP_BTL:{
+          txDataRck.command = SOFT_RESTART_HX;
+          esp_now_send(adressHxBtl, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+          perror("esp_now_send");
+          Serial.println("############## SENDING RESET BTL ################");
+          Serial.println(txDataRck.command);
+          break;;
+        }
+
         case SOFT_RESTART_STM_ESP:{
-          xSemaphoreTake(stm.i2cMutex, pdTRUE);
-          expander.setPinX(4,A,OUTPUT,OFF);
-          xSemaphoreGive(stm.i2cMutex);
-    
+          digitalWrite(RST, LOW);
           Serial.println("################# RESET STM ####################");
           vTaskDelay(100 / portTICK_PERIOD_MS);
-          xSemaphoreTake(stm.i2cMutex, pdTRUE);
-          expander.setPinX(4,A,OUTPUT,ON); //TODO CHECK THIS PIN!
-          xSemaphoreGive(stm.i2cMutex);
+          digitalWrite(RST, HIGH);
+         
           break;
         }
         
         case CALIBRATE_RCK_ESP:{
+          Serial.println("################# CALIBRATE RCK ####################");
           txDataRck.request = ASK;
           txDataRck.offset = rxDataOBC_temp.commandValue;
           txDataRck.command = CALIBRATE_HX;
@@ -145,6 +161,7 @@ void rxHandlingTask(void* arg){
         }
 
         case TARE_RCK_ESP:{
+          Serial.println("################# TARE RCK ####################");
           txDataRck.request = ASK;
           txDataRck.command = TARE_HX;
           esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
@@ -153,6 +170,7 @@ void rxHandlingTask(void* arg){
         }
         
         case SET_CAL_FACTOR_RCK_ESP:{
+          Serial.println("################# SET CAL FACTOR RCK ####################");
           txDataRck.request = ASK;
           txDataRck.offset = rxDataOBC_temp.commandValue;
           txDataRck.command = SET_CAL_FACTOR_HX;
@@ -162,6 +180,7 @@ void rxHandlingTask(void* arg){
         }
 
         case SET_OFFSET_RCK_ESP:{
+          Serial.println("################# SET OFFSET RCK ####################");
           txDataRck.request = ASK;
           txDataRck.offset = rxDataOBC_temp.commandValue;
           txDataRck.command = SET_OFFSET_HX;
@@ -171,6 +190,7 @@ void rxHandlingTask(void* arg){
         }
         
         case CALIBRATE_TANK_ESP:{
+          Serial.println("################# CALIBRATE TANK ####################");  
           txDataBtl.request = ASK;
           txDataBtl.offset = rxDataOBC_temp.commandValue;
           txDataBtl.command = CALIBRATE_HX;
@@ -180,6 +200,7 @@ void rxHandlingTask(void* arg){
         }
 
         case TARE_TANK_ESP:{
+          Serial.println("################# TARE TANK ####################");
           txDataBtl.request = ASK;
           txDataBtl.command = TARE_HX;
           esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
@@ -188,6 +209,7 @@ void rxHandlingTask(void* arg){
         }
 
         case SET_CAL_FACTOR_TANK_ESP:{
+          Serial.println("################# SET CAL FACTOR TANK ####################");
           txDataBtl.request = ASK;
           txDataBtl.offset = rxDataOBC_temp.commandValue;
           txDataBtl.command = SET_CAL_FACTOR_HX;
@@ -197,6 +219,7 @@ void rxHandlingTask(void* arg){
         }
 
         case SET_OFFSET_TANK_ESP:{
+          Serial.println("################# SET OFFSET TANK ####################");
           txDataBtl.request = ASK;
           txDataBtl.offset = rxDataOBC_temp.commandValue;
           txDataBtl.command = SET_OFFSET_HX;
@@ -206,6 +229,7 @@ void rxHandlingTask(void* arg){
         }
 
         case PLSS_ESP:{
+          Serial.println("################# PLSS ####################");
           LoRaFrameTanwa loraFrameTanwa_local = LoRaFrameTanwa_init_zero;
           pb_ostream_t stream = pb_ostream_from_buffer(data_buff, sizeof(data_buff));
           bool status = pb_encode(&stream, LoRaFrameTanwa_fields, &loraFrameTanwa_local);
