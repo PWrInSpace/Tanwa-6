@@ -1,90 +1,99 @@
-// #include "../include/tasks/tasks.h"
+#include "../include/tasks/tasks.h"
+#include "../include/com/can.h"
 
-// #include "../include/com/can.h"
-// #include <CAN.h>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <CAN.h>
 
-// void onReceive(int packetSize);
-// bool canInit(){
+void onReceive(int packetSize);
+void canSend();
+
+extern RxData rxData_CAN;
+extern TxData txData_CAN;
+
+bool canInit(){
     
 
-//   CAN.setPins(CAN_RX, CAN_TX);
-//   if (!CAN.begin(500E3)) {
-//     Serial.println("Starting CAN failed!");
-//     while (1);
-//   }
+    CAN.setPins(CAN_RX, CAN_TX);
+    if (!CAN.begin(500E3)) {
+      Serial.println("Starting CAN failed!");
+      while (1);
+    }
+      
+    CAN.onReceive(onReceive);
+    return true;
+}
+
+
+void canSend(){
+    int DataSize = 100;
+    char* Data = new char[DataSize];
     
-//      CAN.onReceive(onReceive);
-//     // while(1){
-//     //     // Serial.println("CAN task");
-//     //     int packetSize = CAN.parsePacket();
-//     //     Serial.println(packetSize);
-//     //     if (packetSize || CAN.packetId() != -1) {
-//     //         // received a packet
-//     //         Serial.print("Received ");
+    DataSize = snprintf(Data, 100, "%s;%0.2f;%d;%0.2f;",&txData_CAN.request,&txData_CAN.weight, &txData_CAN.weight_raw, &txData_CAN.temperature);
+    int id = 0xb00011;//HX RCK
+    // int id = 0xb00012;//HX BTL
 
-//     //         if (CAN.packetExtended()) {
-//     //         Serial.print("extended ");
-//     //         }
+    uint8_t *buff =(uint8_t*)Data;
+    for(int i = 0; i < DataSize; i = i + 8){
+        CAN.beginExtendedPacket(id);
+        CAN.write(&buff[i], 8);
+        //or
+        for(int j = 0; j < 8; j++){
+        //    CAN.write(buff[i+j]);
+        }
+        CAN.endPacket();
+        id++;
+    }
+    free(Data);
+}
 
-//     //         if (CAN.packetRtr()) {
-//     //         // Remote transmission request, packet contains no data
-//     //         Serial.print("RTR ");
-//     //         }
 
-//     //         Serial.print("packet with id 0x");
-//     //         Serial.print(CAN.packetId(), HEX);
+void onReceive(int packetSize) {
+    // received a packet
+    Serial.print("Received ");
 
-//     //         if (CAN.packetRtr()) {
-//     //         Serial.print(" and requested length ");
-//     //         Serial.println(CAN.packetDlc());
-//     //         } else {
-//     //         Serial.print(" and length ");
-//     //         Serial.println(packetSize);
+    if (CAN.packetExtended()) {
+        // Serial.print("extended ");
+    }
 
-//     //         // only print packet data for non-RTR packets
-//     //         while (CAN.available()) {
-//     //             Serial.print((char)CAN.read());
-//     //         }
-//     //         Serial.println();
-//     //         }
+    if (CAN.packetRtr()) {
+        // Remote transmission request, packet contains no data
+        Serial.print("RTR ");
+    }
 
-//     //         Serial.println();
-//     //     }
-//     //     vTaskDelay(1000 / portTICK_PERIOD_MS);
-//     // }
-//     return true;
-// }
+    //   Serial.print("packet with id 0x");
+    //   Serial.print(CAN.packetId(), HEX);
 
-// /**************************************************************************/
-// void onReceive(int packetSize) {
-//   // received a packet
-//   Serial.print("CAN Received ");
+    if (CAN.packetRtr()) {
+        // Serial.print(" and requested length ");
+        // Serial.println(CAN.packetDlc());
+    } else {
+        // Serial.print(" and length ");
+        // Serial.println(packetSize);
+        if(CAN.packetId() == 0x000011){//HX RCK
+        // if(CAN.packetId() == 0x000012){//HX BTL
+            
+        
+            // only print packet data for non-RTR packets
+            int i = 0;
+            char* Data = new char[100];
+            while (CAN.available()) {    
+                Serial.print((char)CAN.read());
+                Data[i] = (char)CAN.read();
+            }
+            // test data: (Data, 100, "%0.2f;%d;%0.2f;%0.2f;%d;%0.2f;",weight, weight_raw, temperature, weight+1, weight_raw+1, temperature+1);
 
-//   if (CAN.packetExtended()) {
-//     // Serial.print("extended ");
-//   }
+            sscanf( Data, "%s;%f;%d;", &rxData_CAN.request, &rxData_CAN.offset, &rxData_CAN.command);
+            //std::cout<< weight_r1 << ';' << weight_raw_r1 << ';' << temperature_r1 << ';' << weight_r2 << ';' << weight_raw_r2 << ';' << temperature_r2;
 
-//   if (CAN.packetRtr()) {
-//     // Remote transmission request, packet contains no data
-//     Serial.print("RTR ");
-//   }
+            Serial.println();
+        }
+    }
 
-// //   Serial.print("packet with id 0x");
-// //   Serial.print(CAN.packetId(), HEX);
+    Serial.println();
+}
 
-//   if (CAN.packetRtr()) {
-//     // Serial.print(" and requested length ");
-//     // Serial.println(CAN.packetDlc());
-//   } else {
-//     // Serial.print(" and length ");
-//     // Serial.println(packetSize);
-
-//     // only print packet data for non-RTR packets
-//     while (CAN.available()) {
-//       Serial.print((char)CAN.read());
-//     }
-//     Serial.println();
-//   }
-
-//   Serial.println();
-// }
