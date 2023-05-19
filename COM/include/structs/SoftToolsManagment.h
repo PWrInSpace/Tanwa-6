@@ -25,8 +25,11 @@ struct SoftwareToolsManagment{
   QueueHandle_t espNowRxQueueHxBtl;
   QueueHandle_t espNowRxQueueObc;
 
+  QueueHandle_t canRxQueueHxRck;
+
   SemaphoreHandle_t i2cMutex;
   SemaphoreHandle_t spiMutex;
+  SemaphoreHandle_t canMutex;
 
   TwoWire i2c = TwoWire(0);
   SPIClass spi = SPIClass(VSPI);

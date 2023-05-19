@@ -34,7 +34,7 @@ void dataTask(void *arg){
   while (rxData.request != ANSWER) {
 
     dataFrame.request = ASK;
-    rxData_CAN.request = ASK;
+    txData_CAN.request = ASK;
     canSend();
     esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
     Serial.println("SENDING ASK");
@@ -48,7 +48,7 @@ void dataTask(void *arg){
   HxWeight.set_offset(HxWeight.get_offset()-dd);
   Serial.print("OFFSET = "); Serial.println(HxWeight.get_offset());
   dataFrame.request = WORK;
-  rxData_CAN.request = WORK;
+  txData_CAN.request = WORK;
   esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
 
 
@@ -74,8 +74,8 @@ void dataTask(void *arg){
     dataFrame.temperature = 0;
 
     createDataFrame(dataFrame, data);
-    Serial.print("DATA SENT:  "); Serial.println(data);
-    esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
+    // Serial.print("DATA SENT:  "); Serial.println(data);
+    // esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
     canSend();
     // perror("esp_now_send");
 

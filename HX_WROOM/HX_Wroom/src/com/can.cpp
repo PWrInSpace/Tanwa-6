@@ -30,23 +30,43 @@ bool canInit(){
 
 
 void canSend(){
-    int DataSize = 100;
-    char* Data = new char[DataSize];
+    size_t DataSize;
     
-    DataSize = snprintf(Data, 100, "%s;%0.2f;%d;%0.2f;",&txData_CAN.request,&txData_CAN.weight, &txData_CAN.weight_raw, &txData_CAN.temperature);
+    
+    DataSize = snprintf(NULL, 0, "!%s;%0.2f;%d;%0.2f;?",txData_CAN.request.c_str(),txData_CAN.weight, txData_CAN.weight_raw, txData_CAN.temperature) + 1;
+    char* Data = new char[DataSize];
+    snprintf(Data, DataSize, "!%s;%0.2f;%d;%0.2f;?",txData_CAN.request.c_str(),txData_CAN.weight, txData_CAN.weight_raw, txData_CAN.temperature);
+    Serial.print("CAN SEND: ");
+    Serial.println(Data);
+    
+
     int id = 0xb00011;//HX RCK
     // int id = 0xb00012;//HX BTL
 
-    uint8_t *buff =(uint8_t*)Data;
+    uint8_t buff [8] = {0};
+    // Serial.print("BUFF: "); Serial.println(String(*buff));
     for(int i = 0; i < DataSize; i = i + 8){
         CAN.beginExtendedPacket(id);
-        CAN.write(&buff[i], 8);
+        // CAN.write(&buff[i], 8);
+      
         //or
+        Serial.print("BUFF: ");
         for(int j = 0; j < 8; j++){
-        //    CAN.write(buff[i+j]);
+
+            buff[j] = Data[i+j];
+            
+            Serial.print((String)buff[j]);
         }
+        Serial.print("\n");
+        CAN.write(buff, 8);
+        //  sscanf(Data, "%s;%0.2f;%d;%0.2f;",&txData_CAN.request,&txData_CAN.weight, &txData_CAN.weight_raw, &txData_CAN.temperature);
+        // Serial.println("SCANF"); Serial.println(txData_CAN.request.c_str());
+        // Serial.println(txData_CAN.weight);
+        // Serial.println(txData_CAN.weight_raw);
+        // Serial.println(txData_CAN.temperature);
+        // Serial.println();
         CAN.endPacket();
-        id++;
+        // id++;
     }
     free(Data);
 }

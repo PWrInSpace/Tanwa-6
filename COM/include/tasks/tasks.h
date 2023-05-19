@@ -28,7 +28,7 @@ extern HX711_api tankWeight;
 //pro_cpu
 void loraTask(void *arg);
 void rxHandlingTask(void *arg);
-// void canTask(void *arg);
+void canTask(void *arg);
 
 
 //app_cpu

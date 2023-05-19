@@ -88,7 +88,7 @@ void setup() {
   nowAddPeer(adressObc, 0);
   nowAddPeer(adressHxRck, 0);
   nowAddPeer(adressHxBtl, 0);
-  canInit();
+ 
 
 
   //ledcWriteTone(0, 1000);
@@ -104,13 +104,16 @@ void setup() {
   stm.espNowRxQueueHxRck = xQueueCreate(10, sizeof(RxData_Hx));
   stm.espNowRxQueueHxBtl =  xQueueCreate(10, sizeof(RxData_Hx)); 
 
+  stm.canRxQueueHxRck = xQueueCreate(1000, sizeof(char));
+
   stm.i2cMutex = xSemaphoreCreateMutex();
   stm.spiMutex = xSemaphoreCreateMutex();
+  stm.canMutex = xSemaphoreCreateMutex();
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
 
-//  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
+ xTaskCreatePinnedToCore(canTask, "CAN task", 40000, NULL, 3, &stm.canTask, PRO_CPU_NUM);
 //  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 5, &stm.rxHandlingTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);

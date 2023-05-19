@@ -2,18 +2,24 @@
 #include <EEPROM.h>
 #include "lora.pb.h"
 
- LoRaFrameTanwa loraFrameTanwa;
- char data[SD_FRAME_SIZE] = {};
- PWRData pwrData;
- bool lastWeightFlag = false;
- extern float temp_cal_factor;
- extern float lastWeight;
- extern RxData_Hx rxDataRck;
- extern RxData_Hx rxDataBtl;
- extern TxData_Hx txDataRck;
+LoRaFrameTanwa loraFrameTanwa;
+char data[SD_FRAME_SIZE] = {};
+PWRData pwrData;
+bool lastWeightFlag = false;
+extern float temp_cal_factor;
+extern float lastWeight;
+extern RxData_Hx rxDataRck;
+extern RxData_Hx rxDataBtl;
+extern TxData_Hx txDataRck;
 
+extern RxData_Hx rxDataBtl_CAN;
+extern RxData_Hx rxDataRck_CAN;
+extern PWRData pwrData_CAN;
+extern TxData_Hx txDataRck_CAN;
+extern TxData_Hx txDataBtl_CAN;
+extern TxData txData_CAN;
 
- void dataTask(void *arg){
+void dataTask(void *arg){
   uint32_t abort_count = 0;
   int turnVar = 0;
   int SD_cont = 0;
@@ -51,7 +57,7 @@
 
   // !!!//DEBUG
   //InternalI2C<PWRData, TxData> i2cCOM(&stm.i2c, COM_ADRESS);
-
+ 
   vTaskDelay(100 / portTICK_PERIOD_MS);
  
   lastWeightFlag = true;
@@ -74,16 +80,23 @@
       turnVar = 0;
     else
       turnVar = 1;
-
-    loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
-    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
+//########## ESP NOW STRUCT #######################
+    // loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
+    // loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
     
-    loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
-    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
+    // loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
+    // loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
+
+//########## CAN STRUCT ######################
+    loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
+    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
+    
+    loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
+    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
 
     //TODO dodać zapis butli
     snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
-    Serial.print("DATA TO BE SAVED: "); Serial.println(data);
+    // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
     
 
@@ -131,7 +144,7 @@
     dataFrame.tankWeightRaw_val = loraFrameTanwa.tankWeightRaw_val;
 
     createDataFrame(dataFrame, data);
-    Serial.println(data);
+    // Serial.println(data);
 
     // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
@@ -192,33 +205,36 @@
     // i2cCOM.getData(&pwrData);
     // xSemaphoreGive(stm.i2cMutex);
     
-    Serial.println("\nCOM DATA:");
-    Serial.print("TANWA STATE: "); Serial.println(loraFrameTanwa.tanWaState);
-    Serial.print("SD status: "); Serial.println(SD_cont);
-    Serial.print("ABORT BUTTON: "); Serial.println(abrtButton);
-    Serial.print("BLINK: "); Serial.println(pwrData.tick);
-    Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
-    Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
-    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
-    Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
-    Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
-    Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
+    // Serial.println("\nCOM DATA:");
+    // Serial.print("TANWA STATE: "); Serial.println(loraFrameTanwa.tanWaState);
+    // Serial.print("SD status: "); Serial.println(SD_cont);
+    // Serial.print("ABORT BUTTON: "); Serial.println(abrtButton);
+    // Serial.print("BLINK: "); Serial.println(pwrData.tick);
+    // Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
+    // Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
+    // Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
+    // Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
+    // Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
+    // Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
     
 
-    Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
+    // Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
 
-    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
-    Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
-    Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
- 
+    // loraFrameTanwa.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
+    // Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
+    // Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
 
-    Serial.print("TANK WEIGHT: "); Serial.println(loraFrameTanwa.tankWeight_val);
+    
+
+
+    // Serial.print("TANK WEIGHT: "); Serial.println(loraFrameTanwa.tankWeight_val);
+    // Serial.print("TANK WEIGHT RAW: "); Serial.println(loraFrameTanwa.tankWeightRaw_val);
     Serial.print("ROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
     Serial.print("ROCKET WEIGHT RAW: "); Serial.println(loraFrameTanwa.rocketWeightRaw_val);
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
-    Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
-    Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
-    Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest_RCK);
+    // Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
+    // Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
+    // Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest_RCK);
 
 
     esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));

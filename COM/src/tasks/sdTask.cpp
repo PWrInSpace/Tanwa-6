@@ -51,6 +51,7 @@ void sdTask(void *arg){
     lastWeight = data2.toFloat();
     
   xTaskNotifyGive(stm.dataTask);
+  xTaskNotifyGive(stm.canTask);
   
   dataPath_lastWeight = dataPath_lastWeight + String(sd_j) + ".txt";
   vTaskDelay(2000 / portTICK_PERIOD_MS);
