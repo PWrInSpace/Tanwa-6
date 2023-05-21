@@ -2,6 +2,7 @@
 #define TASKS_HH
 
 #include "../structs/SoftToolsManagment.h"
+
 #include "../config/pinout.h"
 #include "../config/config.h"
 #include "../components/hx711_api.h"
