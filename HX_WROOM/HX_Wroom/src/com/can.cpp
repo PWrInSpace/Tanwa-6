@@ -50,14 +50,14 @@ void canSend(){
         // CAN.write(&buff[i], 8);
       
         //or
-        Serial.print("BUFF: ");
+        // Serial.print("BUFF: ");
         for(int j = 0; j < 8; j++){
 
             buff[j] = Data[i+j];
             
-            Serial.print((String)buff[j]);
+            // Serial.print((String)buff[j]);
         }
-        Serial.print("\n");
+        // Serial.print("\n");
         CAN.write(buff, 8);
         //  sscanf(Data, "%s;%0.2f;%d;%0.2f;",&txData_CAN.request,&txData_CAN.weight, &txData_CAN.weight_raw, &txData_CAN.temperature);
         // Serial.println("SCANF"); Serial.println(txData_CAN.request.c_str());

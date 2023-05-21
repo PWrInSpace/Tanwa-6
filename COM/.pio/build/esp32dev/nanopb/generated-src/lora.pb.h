@@ -25,6 +25,8 @@ typedef struct _LoRaFrameTanwa {
     uint32_t motorState_2;
     uint32_t motorState_3;
     uint32_t motorState_4;
+    float rocketWeight_temp;
+    float tankWeight_temp;
     float rocketWeight_val;
     float tankWeight_val;
     uint32_t rocketWeightRaw_val;
@@ -47,9 +49,9 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define LoRaFrameTanwa_init_default              {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define LoRaFrameTanwa_init_default              {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define LoRaCommandTanwa_init_default            {0, 0, 0, 0}
-#define LoRaFrameTanwa_init_zero                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define LoRaFrameTanwa_init_zero                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define LoRaCommandTanwa_init_zero               {0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -67,13 +69,15 @@ extern "C" {
 #define LoRaFrameTanwa_motorState_2_tag          12
 #define LoRaFrameTanwa_motorState_3_tag          13
 #define LoRaFrameTanwa_motorState_4_tag          14
-#define LoRaFrameTanwa_rocketWeight_val_tag      15
-#define LoRaFrameTanwa_tankWeight_val_tag        16
-#define LoRaFrameTanwa_rocketWeightRaw_val_tag   17
-#define LoRaFrameTanwa_tankWeightRaw_val_tag     18
-#define LoRaFrameTanwa_interface_rck_tag         19
-#define LoRaFrameTanwa_interface_tank_tag        20
-#define LoRaFrameTanwa_interface_mcu_tag         21
+#define LoRaFrameTanwa_rocketWeight_temp_tag     15
+#define LoRaFrameTanwa_tankWeight_temp_tag       16
+#define LoRaFrameTanwa_rocketWeight_val_tag      17
+#define LoRaFrameTanwa_tankWeight_val_tag        18
+#define LoRaFrameTanwa_rocketWeightRaw_val_tag   19
+#define LoRaFrameTanwa_tankWeightRaw_val_tag     20
+#define LoRaFrameTanwa_interface_rck_tag         21
+#define LoRaFrameTanwa_interface_tank_tag        22
+#define LoRaFrameTanwa_interface_mcu_tag         23
 #define LoRaCommandTanwa_lora_dev_id_tag         1
 #define LoRaCommandTanwa_sys_dev_id_tag          2
 #define LoRaCommandTanwa_command_tag             3
@@ -95,13 +99,15 @@ X(a, STATIC,   REQUIRED, UINT32,   motorState_1,     11) \
 X(a, STATIC,   REQUIRED, UINT32,   motorState_2,     12) \
 X(a, STATIC,   REQUIRED, UINT32,   motorState_3,     13) \
 X(a, STATIC,   REQUIRED, UINT32,   motorState_4,     14) \
-X(a, STATIC,   REQUIRED, FLOAT,    rocketWeight_val,  15) \
-X(a, STATIC,   REQUIRED, FLOAT,    tankWeight_val,   16) \
-X(a, STATIC,   REQUIRED, UINT32,   rocketWeightRaw_val,  17) \
-X(a, STATIC,   REQUIRED, UINT32,   tankWeightRaw_val,  18) \
-X(a, STATIC,   REQUIRED, BOOL,     interface_rck,    19) \
-X(a, STATIC,   REQUIRED, BOOL,     interface_tank,   20) \
-X(a, STATIC,   REQUIRED, BOOL,     interface_mcu,    21)
+X(a, STATIC,   REQUIRED, FLOAT,    rocketWeight_temp,  15) \
+X(a, STATIC,   REQUIRED, FLOAT,    tankWeight_temp,  16) \
+X(a, STATIC,   REQUIRED, FLOAT,    rocketWeight_val,  17) \
+X(a, STATIC,   REQUIRED, FLOAT,    tankWeight_val,   18) \
+X(a, STATIC,   REQUIRED, UINT32,   rocketWeightRaw_val,  19) \
+X(a, STATIC,   REQUIRED, UINT32,   tankWeightRaw_val,  20) \
+X(a, STATIC,   REQUIRED, BOOL,     interface_rck,    21) \
+X(a, STATIC,   REQUIRED, BOOL,     interface_tank,   22) \
+X(a, STATIC,   REQUIRED, BOOL,     interface_mcu,    23)
 #define LoRaFrameTanwa_CALLBACK NULL
 #define LoRaFrameTanwa_DEFAULT NULL
 
@@ -122,7 +128,7 @@ extern const pb_msgdesc_t LoRaCommandTanwa_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define LoRaCommandTanwa_size                    29
-#define LoRaFrameTanwa_size                      105
+#define LoRaFrameTanwa_size                      117
 
 #ifdef __cplusplus
 } /* extern "C" */

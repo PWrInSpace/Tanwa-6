@@ -90,6 +90,8 @@ struct DataFrame{
   uint8_t motorState_2;
   uint8_t motorState_3;
   uint8_t motorState_4;
+  float rocketWeight_temp;
+  float tankWeight_temp;
   float rocketWeight_val;
   float tankWeight_val; 
   uint32_t rocketWeightRaw_val;
@@ -114,6 +116,8 @@ struct DataFrame{
     motorState_2(0),
     motorState_3(0),
     motorState_4(0),
+    rocketWeight_temp(0),
+    tankWeight_temp(0),
     rocketWeight_val(0),
     tankWeight_val(0),
     rocketWeightRaw_val(0),
