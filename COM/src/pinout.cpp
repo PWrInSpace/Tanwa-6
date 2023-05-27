@@ -52,4 +52,7 @@ void pinInit()
     //I2C
     Wire.begin(I2C_SDA, I2C_SCL);
 
+    //calibrate btl
+    pinMode(HX1_SCL, INPUT);
+
 }

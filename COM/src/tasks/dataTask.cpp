@@ -8,9 +8,11 @@ PWRData pwrData;
 bool lastWeightFlag = false;
 extern float temp_cal_factor;
 extern float lastWeight;
+extern float lastWeightBtl;
 extern RxData_Hx rxDataRck;
 extern RxData_Hx rxDataBtl;
 extern TxData_Hx txDataRck;
+extern TxData_Hx txDataBtl;
 
 extern RxData_Hx rxDataBtl_CAN;
 extern RxData_Hx rxDataRck_CAN;
@@ -32,24 +34,39 @@ void dataTask(void *arg){
 
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-
+  vTaskDelay(5000 / portTICK_PERIOD_MS);
+  Serial.println("BEFORE RCK REQUEST");
+  Serial.println(rxDataRck.request);
   while(rxDataRck.request != WORK && rxDataRck.request == ASK){
     // lastWeightFlag = true;
     txDataRck.request = ANSWER;
     txDataRck.offset = lastWeight;
     esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-    perror("esp_now_send");
-    Serial.println("SENDING ANSWER");
+    perror("esp_now_send RCK");
+    Serial.println("SENDING ANSWER RCK");
     Serial.println(txDataRck.request);
     Serial.println(txDataRck.offset);
     Serial.println(txDataRck.command);
     vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
+  Serial.println("BEFORE BTL REQUEST");
+  Serial.println(rxDataBtl.request);
+  while(rxDataBtl.request != WORK && rxDataBtl.request == ASK){
+      // lastWeightFlag = true;
+      txDataBtl.request = ANSWER;
+      txDataBtl.offset = lastWeightBtl;
+      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      perror("esp_now_send BTL");
+      Serial.println("SENDING ANSWER BTL");
+      Serial.println(txDataBtl.request);
+      Serial.println(txDataBtl.offset);
+      Serial.println(txDataBtl.command);
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
   Serial.println("OUT OF LOOP");
   
 
-  vTaskDelay(3000 / portTICK_PERIOD_MS);
+  vTaskDelay(300 / portTICK_PERIOD_MS);
 
 
  
@@ -57,15 +74,17 @@ void dataTask(void *arg){
 
   // !!!//DEBUG
   //InternalI2C<PWRData, TxData> i2cCOM(&stm.i2c, COM_ADRESS);
- 
-  vTaskDelay(100 / portTICK_PERIOD_MS);
- 
+
   lastWeightFlag = true;
   while(1){
 
     txDataRck.request = WORK;
     txDataRck.offset = 0;
     txDataRck.command = NOTHING;
+
+    txDataBtl.request = WORK;
+    txDataBtl.offset = 0;
+    txDataBtl.command = NOTHING;
     
     Serial.println("LOOP");
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
@@ -80,26 +99,32 @@ void dataTask(void *arg){
       turnVar = 0;
     else
       turnVar = 1;
-//########## ESP NOW STRUCT #######################
+    //########## ESP NOW STRUCT #######################
     loraFrameTanwa.tankWeight_temp = rxDataBtl.temperature;
     loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
     loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
-
+    
     loraFrameTanwa.rocketWeight_temp = rxDataRck.temperature;
     loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
     loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
 
-//########## CAN STRUCT ######################
+    //########## CAN STRUCT ######################
+    // loraFrameTanwa.tankWeight_temp = rxDataBtl_CAN.temperature;
     // loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
     // loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
-    
+
+    // loraFrameTanwa.rocketWeight_temp = rxDataRck_CAN.temperature;
     // loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
     // loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
 
     //TODO dodać zapis butli
     snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
-    Serial.print("DATA TO BE SAVED: "); Serial.println(data);
-    xQueueSend(stm.sdQueue_lastWeight, (void*)data, 0);
+    // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
+    xQueueSend(stm.sdQueue_lastWeightRck, (void*)data, 0);
+
+    snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.tankWeight_val);
+    // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
+    xQueueSend(stm.sdQueue_lastWeightBtl, (void*)data, 0);
     
 
     loraFrameTanwa.vbat = voltageMeasure(VOLTAGE_MEASURE);
@@ -127,6 +152,16 @@ void dataTask(void *arg){
         loraFrameTanwa.hxRequest_RCK = 0;
     }
 
+       if(rxDataBtl.request == ANSWER){
+        loraFrameTanwa.hxRequest_TANK = 1;
+    }else if(rxDataBtl.request == ANSWER){
+        loraFrameTanwa.hxRequest_TANK = 2;
+    }else if(rxDataBtl.request == WORK){
+        loraFrameTanwa.hxRequest_TANK = 3;
+    }else{
+        loraFrameTanwa.hxRequest_TANK = 0;
+    }
+
     dataFrame.tanWaState = loraFrameTanwa.tanWaState;
     dataFrame.pressureSensor = loraFrameTanwa.pressureSensor;
     dataFrame.solenoid_fill = loraFrameTanwa.solenoid_fill;
@@ -135,13 +170,12 @@ void dataTask(void *arg){
     dataFrame.igniterContinouity_1 = loraFrameTanwa.igniterContinouity_1;
     dataFrame.igniterContinouity_2 = loraFrameTanwa.igniterContinouity_2;
     dataFrame.hxRequest_RCK = rxDataRck.request;
+    dataFrame.hxRequest_TANK = rxDataBtl.request;
     dataFrame.vbat = loraFrameTanwa.vbat;
     dataFrame.motorState_1 = loraFrameTanwa.motorState_1;
     dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
     dataFrame.motorState_3 = loraFrameTanwa.motorState_3;
     dataFrame.motorState_4 = loraFrameTanwa.motorState_4;
-    dataFrame.rocketWeight_temp = loraFrameTanwa.rocketWeight_temp;
-    dataFrame.tankWeight_temp = loraFrameTanwa.tankWeight_temp;
     dataFrame.rocketWeight_val = loraFrameTanwa.rocketWeight_val;
     dataFrame.tankWeight_val = loraFrameTanwa.tankWeight_val;
     dataFrame.rocketWeightRaw_val = loraFrameTanwa.rocketWeightRaw_val;
@@ -153,49 +187,64 @@ void dataTask(void *arg){
     // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
-      //TODO check polarity of pin ABORT on esp pull up or down
+    //TODO check polarity of pin ABORT on esp pull up or down
+    xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    abrtButton = !expander.getPin(0,B);
+    SD_cont = !expander.getPin(7,A);
+    xSemaphoreGive(stm.i2cMutex);
+
+    //TODO UNCOMMENT + change pin or solder correct pull up
+    if(abrtButton == 1){
+
+      Serial.println("############## CALIBRATE RCK ################");
+      
       xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      abrtButton = !expander.getPin(0,B);
-      SD_cont = !expander.getPin(7,A);
+      expander.setPinX(5,A,OUTPUT, OFF);
       xSemaphoreGive(stm.i2cMutex);
 
-      //TODO UNCOMMENT + change pin or solder correct pull up
-      // if(abrtButton == 1){// ABORT BUTTON
+      txDataRck.request = ASK;
+      txDataRck.offset = 1000;
+      txDataRck.command = CALIBRATE_HX;
+      esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
+      if(digitalRead(HX1_SCL) == HIGH){
 
-      //  Serial.println("#       ##### ABORT BUTTON #### ######");
-        
-      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      //   expander.setPinX(5,A,OUTPUT, OFF);
-      //   xSemaphoreGive(stm.i2cMutex);
+      Serial.println("############ CALIBRATE BTL ##############");
+      
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      expander.setPinX(5,A,OUTPUT, OFF);
+      xSemaphoreGive(stm.i2cMutex);
 
-      //   txDataRck.request = ASK;
-      //   txDataRck.offset = 1000;
-      //   txDataRck.command = CALIBRATE_HX;
-      //   esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-      //   vTaskDelay(10000 / portTICK_PERIOD_MS);
+      txDataBtl.request = ASK;
+      txDataBtl.offset = 1000;
+      txDataBtl.command = CALIBRATE_HX;
+      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
 
-      // // //################### real abort content ###################
-      // //   // abort_count++;
-      // //   // Serial.println("==================");
-      // //   // Serial.println("ABORT ++");
-      // //   // Serial.println("==================");
-      // //   // if(abort_count>=3){
-      // //   //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      // //   //   expander.setPin(4,A,OFF);
-      // //   //   xSemaphoreGive(stm.i2cMutex);
-      // //   //   StateMachine::changeStateRequest(States::ABORT);
-      // //   //   Serial.println("ABORT BUTTON CONFIRMATION");
-      // //   //}
-      // //   //##########################################################
-      // }
-      // else{
-      //   abort_count = 0;
-      //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      //   expander.setPin(4,A,ON);
-      //   expander.setPinX(5,A,OUTPUT, ON);
-      //   xSemaphoreGive(stm.i2cMutex);
-      // }
-      // // canSend();
+    // // //################### real abort content ###################
+    // //   // abort_count++;
+    // //   // Serial.println("==================");
+    // //   // Serial.println("ABORT ++");
+    // //   // Serial.println("==================");
+    // //   // if(abort_count>=3){
+    // //   //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    // //   //   expander.setPin(4,A,OFF);
+    // //   //   xSemaphoreGive(stm.i2cMutex);
+    // //   //   StateMachine::changeStateRequest(States::ABORT);
+    // //   //   Serial.println("ABORT BUTTON CONFIRMATION");
+    // //   //}
+    // //   //##########################################################
+    // }
+    // else{
+    //   abort_count = 0;
+    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    //   expander.setPin(4,A,ON);
+    //   expander.setPinX(5,A,OUTPUT, ON);
+    //   xSemaphoreGive(stm.i2cMutex);
+    // }
+    // // canSend();
 
 
       
@@ -230,16 +279,20 @@ void dataTask(void *arg){
 
     
 
-    Serial.print("TANK temperature: "); Serial.println(loraFrameTanwa.tankWeight_temp);
-    Serial.print("TANK WEIGHT: "); Serial.println(loraFrameTanwa.tankWeight_val);
-    Serial.print("TANK WEIGHT RAW: "); Serial.println(loraFrameTanwa.tankWeightRaw_val);
-    Serial.print("ROCKET temperature: "); Serial.println(loraFrameTanwa.rocketWeight_temp);
-    Serial.print("ROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
-    Serial.print("ROCKET WEIGHT RAW: "); Serial.println(loraFrameTanwa.rocketWeightRaw_val);
-    Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
-    Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
-    Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
-    Serial.print("HX REQUEST "); Serial.println(loraFrameTanwa.hxRequest_RCK);
+
+    Serial.print("TANK WEIGHT: "); Serial.print(loraFrameTanwa.tankWeight_val);
+    Serial.print("\t\tROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
+    Serial.print("TANK WEIGHT RAW: "); Serial.print(loraFrameTanwa.tankWeightRaw_val);
+    Serial.print("\t\tROCKET WEIGHT RAW: "); Serial.println(loraFrameTanwa.rocketWeightRaw_val);
+    Serial.print("TANK TEMPERATURE: "); Serial.print(loraFrameTanwa.tankWeight_temp);
+    Serial.print("\t\tROCKET TEMPERATURE: "); Serial.println(loraFrameTanwa.rocketWeight_temp);
+    // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
+    // Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
+    // Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
+    Serial.print("HX REQUEST TANK: "); Serial.print(loraFrameTanwa.hxRequest_TANK);
+    Serial.print("\t\tHX REQUEST RCK: "); Serial.println(loraFrameTanwa.hxRequest_RCK);
+   
+    Serial.println();
 
 
     esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
@@ -247,4 +300,4 @@ void dataTask(void *arg){
     
     vTaskDelay(500 / portTICK_PERIOD_MS); 
   }
- }
+}

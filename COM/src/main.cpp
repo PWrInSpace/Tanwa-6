@@ -97,12 +97,13 @@ void setup() {
  // ledcWrite(0, 0);
 
   stm.sdQueue = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
-  stm.sdQueue_lastWeight = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
+  stm.sdQueue_lastWeightRck = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
+  stm.sdQueue_lastWeightBtl = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
   stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(uint8_t[LORA_TX_FRAME_SIZE]));
   stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(LoRaFrameTanwa[LORA_RX_FRAME_SIZE]));
   stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(RxData_OBC));
-  stm.espNowRxQueueHxRck = xQueueCreate(10, sizeof(RxData_Hx));
-  stm.espNowRxQueueHxBtl =  xQueueCreate(10, sizeof(RxData_Hx)); 
+  stm.espNowRxQueueHxRck = xQueueCreate(1, sizeof(RxData_Hx));
+  stm.espNowRxQueueHxBtl =  xQueueCreate(1, sizeof(RxData_Hx)); 
 
   stm.canRxQueueHxRck = xQueueCreate(1000, sizeof(char));
 

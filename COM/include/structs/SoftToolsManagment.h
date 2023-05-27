@@ -18,7 +18,8 @@ struct SoftwareToolsManagment{
   TaskHandle_t rxHandlingTask;
   //... inne taski
   QueueHandle_t sdQueue;
-  QueueHandle_t sdQueue_lastWeight;
+  QueueHandle_t sdQueue_lastWeightRck;
+  QueueHandle_t sdQueue_lastWeightBtl;
   QueueHandle_t loraTxQueue;
   QueueHandle_t loraRxQueue;
   QueueHandle_t espNowRxQueueHxRck;

@@ -324,6 +324,22 @@ void rxHandlingTask(void* arg){
       // Serial.print("TEMP:   ");Serial.println(rxDataRck.temperature);
      }
 
+    if(xQueueReceive(stm.espNowRxQueueHxBtl, (void*)&rxData_temp, 0) == pdTRUE){
+
+    
+      if(rxData_temp.request == ASK && lastWeightFlag == true){
+        rxDataBtl.request = rxData_temp.request;
+        txDataBtl.request = ANSWER;
+        txDataBtl.offset = rxDataBtl.weight;
+        esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+        perror("esp_now_send");
+        
+      }
+      else{
+        memcpy(&rxDataBtl, &rxData_temp, sizeof(rxData_temp));
+      }
+    }
+
       // Serial.print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
     //LORA 
     // if(xQueueReceive(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx, 0) == pdTRUE){

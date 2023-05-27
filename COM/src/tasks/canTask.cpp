@@ -58,10 +58,7 @@ void canTask(void *arg){
                 Serial.print(Data_RCK);
             }
         }
-
-
-                    
-       
+        
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
     }

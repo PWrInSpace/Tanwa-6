@@ -74,7 +74,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
       }
     }
     else if(adressCompare(mac, adressHxBtl)) {
-      Serial.println("Data HXHXHXHXHHXHXHH22222222222222222222222");
+      // Serial.println("Data HXHXHXHXHHXHXHH22222222222222222222222");
         memcpy((void*) &rxDataBtl, (uint16_t *)incomingData, sizeof(RxData_Hx));
         if(xQueueSend(stm.espNowRxQueueHxBtl, (void*)&rxDataBtl, 0) == pdFALSE){
         //TODO ERROR HANDLING

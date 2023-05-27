@@ -25,8 +25,8 @@
 
 //SD FILE PATH
 static String dataFileName= "/data_";
-static String dataFileName_lastWeight= "/lastWeight_";
-
+static String dataFileName_lastWeightRck= "/lastWeightRck_";
+static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 //I2C COM COMMAND
 #define OPEN_VALVE 0x01
 #define CLOSE_VALVE 0x00
