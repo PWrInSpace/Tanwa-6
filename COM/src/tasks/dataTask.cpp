@@ -68,7 +68,15 @@ void dataTask(void *arg){
 
   vTaskDelay(300 / portTICK_PERIOD_MS);
 
+  ledcWriteTone(0, 5000);
+  for(int i = 0; i <2; i++){
+  ledcWrite(0, 255);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
+  ledcWrite(0, 0);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
+  }
+ 
  
 
 
