@@ -22,6 +22,7 @@ extern TxData_Hx txDataBtl_CAN;
 extern TxData txData_CAN;
 
 void dataTask(void *arg){
+  Serial.println("DATA TASK");
   uint32_t abort_count = 0;
   int turnVar = 0;
   int SD_cont = 0;
@@ -32,8 +33,8 @@ void dataTask(void *arg){
   expander.setPinMode(0,B,INPUT); //input for abort button
   xSemaphoreGive(stm.i2cMutex);
 
-
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+//TODO
+  // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   Serial.println("BEFORE RCK REQUEST");
   Serial.println(rxDataRck.request);

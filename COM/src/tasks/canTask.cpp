@@ -43,6 +43,8 @@ void canTask(void *arg){
             if(xQueueReceive(stm.canRxQueueHxRck, (void*)&Data_RCK_temp, 0) == pdTRUE){
                 
                 if(Data_RCK_temp == '?'){
+                    Data_RCK[i] = '\0';
+
                     Serial.println("\nEND FLAG");
                     end_frame_flag = 1;
                     start_frame_flag = 0;
@@ -54,7 +56,7 @@ void canTask(void *arg){
                     break;
                 }
 
-                Data_RCK[i] = Data_RCK_temp;
+                Data_RCK[i++] = Data_RCK_temp;
                 Serial.print(Data_RCK);
             }
         }

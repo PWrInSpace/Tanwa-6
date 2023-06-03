@@ -9,6 +9,7 @@
 #include "../include/structs/commStructs.h"
 #include "../include/com/now.h"
 #include "../include/com/can.h"
+#include "../include/com/ESP32_blelib.hh"
 #include <esp_wifi.h>
 #include <MCP23017.h>
 #include <EEPROM.h>
@@ -28,12 +29,14 @@ void setup() {
   Serial.begin(115200);
   pinInit();
 
+
+  //TODO REMEMBER TO UNLOCK IT 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
   vTaskDelay(100 / portTICK_PERIOD_MS);
 
   ledcSetup(0,2000,8);// PWM FOR BUZZER
- ledcAttachPin(BUZZER, 0);
+  ledcAttachPin(BUZZER, 0);
   
   
   stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
@@ -84,14 +87,21 @@ void setup() {
     }
 
  //############################
+   //TODO REMEMBER TO UNLOCK IT 
   nowInit();
   nowAddPeer(adressObc, 0);
   nowAddPeer(adressHxRck, 0);
   nowAddPeer(adressHxBtl, 0);
+
+    ESP32_blelib::init(
+    &pCharacteristicFILL,
+    &pCharacteristicDEPR,
+    &pCharacteristicQD
+  );
  
 
 
-  ledcWriteTone(0, 1000);
+ ledcWriteTone(0, 1000);
  ledcWrite(0, 255);
  vTaskDelay(100 / portTICK_PERIOD_MS);
  ledcWrite(0, 0);
@@ -114,13 +124,13 @@ void setup() {
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
 
-  xTaskCreatePinnedToCore(canTask, "CAN task", 40000, NULL, 3, &stm.canTask, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(canTask, "CAN task", 4096, NULL, 3, &stm.canTask, PRO_CPU_NUM);
 //  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 5, &stm.rxHandlingTask, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
-  xTaskCreatePinnedToCore(dataTask, "Data task", 40000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
-  xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);
-  xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 5000, NULL, 1, &stm.buzzerTask, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 8192, NULL, 20, &stm.rxHandlingTask, PRO_CPU_NUM);
+  // xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
+  xTaskCreatePinnedToCore(dataTask, "Data task", 8192, NULL, 20, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(stateTask, "State task", 2048, NULL, 20, &stm.stateTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 1024, NULL, 15, &stm.buzzerTask, PRO_CPU_NUM);
 
 
    if(stm.sdQueue == NULL || stm.loraTxQueue == NULL){
