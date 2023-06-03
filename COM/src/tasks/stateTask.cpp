@@ -226,6 +226,11 @@ void stateTask(void *arg)
       digitalWrite(ARM_PIN, LOW);
       digitalWrite(FIRE1, LOW);
       digitalWrite(FIRE2, LOW);
+      
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      expander.setPinX(5,A,OUTPUT, OFF);
+      xSemaphoreGive(stm.i2cMutex);
+
       Serial.println("ABORTTTT");
       if (abort_flag == false)
       {

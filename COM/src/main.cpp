@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "../include/tasks/tasks.h"
+#include "lora.pb.h"
+#include "pb_decode.h"
+#include "pb_encode.h"
 #include "../include/config/config.h"
 #include "../include/structs/SoftToolsManagment.h"
 #include "../include/structs/commStructs.h"
@@ -27,32 +30,11 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   esp_wifi_set_mac(WIFI_IF_STA , adressTanwa);
- 
- 
-
-  // EEPROM.begin(EEPROM_SIZE);
-  
-  // int eeprom_temp_tab[6];
-
-  // for (int i = 0; i<6; i++){
-  //   eeprom_temp_tab[i] = EEPROM.read(i);
-  //   //Serial.print("EEPROM TAB  "); Serial.println(eeprom_temp_tab[i]);
-  // }
-
-
-  // temp_cal_factor =(10*eeprom_temp_tab[4]+1*eeprom_temp_tab[3]+0.1*eeprom_temp_tab[2]+0.01*eeprom_temp_tab[1] + 0.001*eeprom_temp_tab[0]);
-
-  // if(eeprom_temp_tab[5]==1)
-  //   temp_cal_factor = temp_cal_factor *(-1);
-
-
-  // Serial.println("EEPROM   "); Serial.println(temp_cal_factor,3);
-  
-  
-   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
   //ledcSetup(0,2000,8);// PWM FOR BUZZER
  // ledcAttachPin(BUZZER, 0);
+  
   
   stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
   stm.i2c.setTimeOut(20);
@@ -82,7 +64,7 @@ void setup() {
     expander.setPinX(1,B,OUTPUT, OFF);
     expander.setPinX(2,B,OUTPUT, ON);
     expander.setPinX(3,B,OUTPUT, ON);
-    expander.setPinX(4,B,OUTPUT, OFF);
+    expander.setPinX(4,B,OUTPUT, ON);
     expander.setPinX(5,B,OUTPUT, ON);
     expander.setPinX(6,B,OUTPUT, ON);
     expander.setPinX(7,B,OUTPUT, ON);
@@ -99,19 +81,14 @@ void setup() {
       // expander.setPinPullUp(6,A,OFF);// LED8
       // expander.setPinPullUp(5,A,ON);// LED9
       // expander.setPinPullUp(4,A,OFF);// LED10
-
-
-
     }
 
-
-   
-  
  //############################
   nowInit();
-  // nowAddPeer(adressObc, 0);
+  nowAddPeer(adressObc, 0);
   nowAddPeer(adressHxRck, 0);
-  canInit();
+  nowAddPeer(adressHxBtl, 0);
+ 
 
 
   //ledcWriteTone(0, 1000);
@@ -120,24 +97,28 @@ void setup() {
  // ledcWrite(0, 0);
 
   stm.sdQueue = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
-  stm.sdQueue_lastWeight = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
-  stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(char[LORA_TX_FRAME_SIZE]));
-  stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(char[LORA_RX_FRAME_SIZE]));
-  stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(TxData));
-  stm.espNowRxQueueHxRck = xQueueCreate(10, sizeof(RxData_Hx));
-  stm.espNowRxQueueHxBtl =  xQueueCreate(10, sizeof(RxData_Hx)); 
+  stm.sdQueue_lastWeightRck = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
+  stm.sdQueue_lastWeightBtl = xQueueCreate(SD_QUEUE_LENGTH, sizeof(char[SD_FRAME_SIZE]));
+  stm.loraTxQueue = xQueueCreate(LORA_TX_QUEUE_LENGTH, sizeof(uint8_t[LORA_TX_FRAME_SIZE]));
+  stm.loraRxQueue = xQueueCreate(LORA_RX_QUEUE_LENGTH, sizeof(LoRaFrameTanwa[LORA_RX_FRAME_SIZE]));
+  stm.espNowRxQueueObc = xQueueCreate(ESP_NOW_QUEUE_LENGTH, sizeof(RxData_OBC));
+  stm.espNowRxQueueHxRck = xQueueCreate(1, sizeof(RxData_Hx));
+  stm.espNowRxQueueHxBtl =  xQueueCreate(1, sizeof(RxData_Hx)); 
+
+  stm.canRxQueueHxRck = xQueueCreate(1000, sizeof(char));
 
   stm.i2cMutex = xSemaphoreCreateMutex();
   stm.spiMutex = xSemaphoreCreateMutex();
+  stm.canMutex = xSemaphoreCreateMutex();
 
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
 
-//  xTaskCreatePinnedToCore(canTask, "CAN task", 20000, NULL, 3, &stm.canTask, APP_CPU_NUM);
- // xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
-  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 2, &stm.rxHandlingTask, APP_CPU_NUM);
+ xTaskCreatePinnedToCore(canTask, "CAN task", 40000, NULL, 3, &stm.canTask, PRO_CPU_NUM);
+//  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 20000, NULL, 5, &stm.rxHandlingTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
-  xTaskCreatePinnedToCore(dataTask, "Data task", 20000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(dataTask, "Data task", 40000, NULL, 3, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 20000, NULL, 10, &stm.stateTask, APP_CPU_NUM);
  // xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 20000, NULL, 1, &stm.buzzerTask, APP_CPU_NUM);
 
@@ -161,9 +142,6 @@ void setup() {
   StateMachine::changeStateRequest(States::IDLE);
   
   vTaskDelete(NULL);
-
-  
 }
 
 void loop() {}
-

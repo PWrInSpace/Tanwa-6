@@ -5,7 +5,7 @@ float voltageMeasure(uint8_t batteryPin)
 {
     // reverseDividerVal = (R1 + R2) / R2 = 58/11
     // return (analogReadMilliVolts(batteryPin) / 4095) * 3300 * (58/11);//TODO sprawdizc rezystor
-    return (analogReadMilliVolts(batteryPin)*0.005528);
+    return (analogReadMilliVolts(batteryPin)*0.00428571429);
     
 }
 
@@ -51,5 +51,8 @@ void pinInit()
 
     //I2C
     Wire.begin(I2C_SDA, I2C_SCL);
+
+    //calibrate btl
+    pinMode(HX1_SCL, INPUT);
 
 }

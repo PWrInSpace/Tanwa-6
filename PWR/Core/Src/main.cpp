@@ -163,11 +163,12 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_CAN_Init();
-  MX_I2C2_Init();
+
   MX_ADC1_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_CAN_Start(&hcan);
@@ -178,7 +179,7 @@ int main(void)
   TxHeader.StdId = 0x103;
   TxHeader.RTR = CAN_RTR_DATA;
 
-  HAL_Delay(50);
+//  HAL_Delay(50);
   ValveList.push_back({new Solenoid(Sol1Dir_GPIO_Port, Sol1Dir_Pin), ValveStateIDK});
   ValveList.push_back({new Solenoid(Sol2Dir_GPIO_Port, Sol2Dir_Pin), ValveStateIDK});
   ValveList.push_back({new DoubleMotor(new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2)), ValveStateIDK});

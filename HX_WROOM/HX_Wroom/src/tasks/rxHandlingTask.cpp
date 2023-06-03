@@ -49,7 +49,7 @@ void rxHandlingTask(void* arg){
               x_temp=abs(temp_cal_factor2)/10;
               tab[i] = abs(temp_cal_factor2) - 10*x_temp;
               temp_cal_factor2 = x_temp;
-              Serial.println("CONVERTED VALUE: "); Serial.println(tab[i]);
+              Serial.println("##################  CONVERTED VALUE:  #####################"); Serial.println(tab[i]);
               EEPROM.write(i, tab[i]);
               EEPROM.commit();
             } 
@@ -62,17 +62,24 @@ void rxHandlingTask(void* arg){
           break;
         }
 
-        case SET_CAL_FACTOR_:
+        case SET_CAL_FACTOR_:{
+
+        
           HxWeight.set_scale(rxData.offset);
           break;
+        }
 
-        case SET_OFFSET_:
-          HxWeight.set_offset(rxData.offset);
+        case SET_OFFSET_:{
+          int dd = HxWeight.get_scale() * rxData.offset; 
+          HxWeight.set_offset(HxWeight.get_offset()-dd);
+          Serial.print("###### ### OFFSET = "); Serial.println(HxWeight.get_offset());
           break;
+        }
         
-        case SOFT_RESTART_:
+        case SOFT_RESTART_:{
           esp_restart();
           break;
+      }
 
         default:
           break;

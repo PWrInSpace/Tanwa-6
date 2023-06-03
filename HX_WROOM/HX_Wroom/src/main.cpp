@@ -17,9 +17,13 @@ void setup() {
 
   Serial.begin(115200);
   pinInit();
+  Wire.begin(21,22);
+
+
 
   WiFi.mode(WIFI_STA);
-  esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
+  esp_wifi_set_mac(WIFI_IF_STA , adressHxBtl);
+  // esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
 
 
   EEPROM.begin(EEPROM_SIZE);
@@ -47,6 +51,7 @@ void setup() {
   nowAddPeer(adressTanwa, 0);
 
   canInit();
+
 
   stm.espNowRxQueue = xQueueCreate(10, sizeof(RxData));
   // stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);

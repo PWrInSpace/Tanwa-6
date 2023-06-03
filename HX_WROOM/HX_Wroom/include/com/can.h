@@ -4,4 +4,5 @@
 
 
 bool canInit();
+void canSend();
 void onReceive(int packetSize);
