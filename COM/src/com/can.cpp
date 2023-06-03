@@ -108,24 +108,9 @@ void canSend(){
 /// @brief 
 /// @param packetSize 
 void onReceive(int packetSize) {
-    // received a packet
-    // Serial.print("Received ");
-
-    if (CAN.packetExtended()) {
-        // Serial.print("extended ");
-    }
-
+    
     if (CAN.packetRtr()) {
-        // Remote transmission request, packet contains no data
-        Serial.print("RTR ");
-    }
-
-    //   Serial.print("packet with id 0x");
-    //   Serial.print(CAN.packetId(), HEX);
-
-    if (CAN.packetRtr()) {
-        // Serial.print(" and requested length ");
-        // Serial.println(CAN.packetDlc());
+       
     } else {
         // Serial.print(" and length ");
         // Serial.println(packetSize);
@@ -149,56 +134,40 @@ void onReceive(int packetSize) {
                 xQueueSend(stm.canRxQueueHxRck, (void*)&Data1[i], 0);
                 i++;
                 // Serial.print("i  = ");
-                // Serial.println(i);
-                
+                // Serial.println(i); 
             }
-
-            // test data: (Data, 100, "%0.2f;%d;%0.2f;%0.2f;%d;%0.2f;",weight, weight_raw, temperature, weight+1, weight_raw+1, temperature+1);
-
-           
-            //std::cout<< weight_r1 << ';' << weight_raw_r1 << ';' << temperature_r1 << ';' << weight_r2 << ';' << weight_raw_r2 << ';' << temperature_r2;
-            
-            // Serial.print("DATA RCK = ");Serial.println(Data1);
-            // free(Data1);
-            
-
         }
-        // else if(CAN.packetId() == 0xb00012){ //HX Btl
+        else if(CAN.packetId() == 0xb00012){ //HX Btl
               
-        //   int i = 0;
-        //   char* Data = new char[100];
-        //   while (CAN.available()) {    
-        //     //   Serial.print((char)CAN.read());
-        //     if(CAN.packetId() == 0xb00012)
-        //       Data[i] = (char)CAN.read();
-        //   }
-        //   // test data: (Data, 100, "%0.2f;%d;%0.2f;%0.2f;%d;%0.2f;",weight, weight_raw, temperature, weight+1, weight_raw+1, temperature+1);
+            int i = 0;
+            char Data2[100] = {'\0'};
+           
+            // Serial.println("RCK   :");
 
-        //   sscanf( Data,  "%s;%0.2f;%d;%0.2f", &rxDataBtl_CAN.request, &rxDataBtl_CAN.weight, &rxDataBtl_CAN.weight_raw, &rxDataBtl_CAN.temperature);
-        //   //std::cout<< weight_r1 << ';' << weight_raw_r1 << ';' << temperature_r1 << ';' << weight_r2 << ';' << weight_raw_r2 << ';' << temperature_r2;
-          
-        //   Serial.print("DATA BTL = ");Serial.println(Data);
-        //   free(Data); 
-        // }
-        // else if(CAN.packetId() == 0xb00013){ //PWR
+            while (CAN.available() && CAN.packetId() == 0xb00012) { 
+            
+                //   Serial.print((char)CAN.read());
+                // Serial.println(CAN.packetId(), HEX);
+                
+                char temp_read = (char)CAN.read();
+              
+                Data2[i] = temp_read;
+                xQueueSend(stm.canRxQueueHxBtl, (void*)&Data2[i], 0);
+                i++;
+                // Serial.print("i  = ");
+                // Serial.println(i); 
+            }
+        }
+        else if(CAN.packetId() == 0xb00013){ //PWR
 
-        //   int i = 0;
-        //   char* Data = new char[100];
-        //   while (CAN.available()) {    
-        //     //   Serial.print((char)CAN.read());
-        //     if(CAN.packetId() == 0xb00013)
-        //       Data[i] = (char)CAN.read();
-        //   }
-
-        //   // test data: (Data, 100, "%0.2f;%d;%0.2f;%0.2f;%d;%0.2f;",weight, weight_raw, temperature, weight+1, weight_raw+1, temperature+1);
-        // Serial.print("DATA PWR = ");Serial.println(Data);
-        //   sscanf( Data,  "%d;%d;%d;%d;%d;%d;%d;%d;%d", &pwrData_CAN.tick, &pwrData_CAN.lastDoneCommandNum, &pwrData_CAN.motorState[0], &pwrData_CAN.motorState[1], &pwrData_CAN.motorState[2], &pwrData_CAN.motorState[3], &pwrData_CAN.adcValue[0], &pwrData_CAN.adcValue[1], &pwrData_CAN.adcValue[2]);
-        //   //std::cout<< weight_r1 << ';' << weight_raw_r1 << ';' << temperature_r1 << ';' << weight_r2 << ';' << weight_raw_r2 << ';' << temperature_r2;
-        //   free(Data);
-        //   Serial.println();
-
-        // }
-
+            int i = 0;
+            char* Data = new char[100];
+            while (CAN.available()) {    
+                //   Serial.print((char)CAN.read());
+                if(CAN.packetId() == 0xb00013)
+                Data[i] = (char)CAN.read();
+            }
+        }
     }
 
     // Serial.println();

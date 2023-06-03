@@ -93,11 +93,11 @@ void setup() {
   nowAddPeer(adressHxRck, 0);
   nowAddPeer(adressHxBtl, 0);
 
-    ESP32_blelib::init(
-    &pCharacteristicFILL,
-    &pCharacteristicDEPR,
-    &pCharacteristicQD
-  );
+  //   ESP32_blelib::init(
+  //   &pCharacteristicFILL,
+  //   &pCharacteristicDEPR,
+  //   &pCharacteristicQD
+  // );
  
 
 
@@ -116,6 +116,7 @@ void setup() {
   stm.espNowRxQueueHxBtl =  xQueueCreate(1, sizeof(RxData_Hx)); 
 
   stm.canRxQueueHxRck = xQueueCreate(1000, sizeof(char));
+  stm.canRxQueueHxBtl = xQueueCreate(1000, sizeof(char));
 
   stm.i2cMutex = xSemaphoreCreateMutex();
   stm.spiMutex = xSemaphoreCreateMutex();
@@ -124,13 +125,13 @@ void setup() {
   vTaskDelay(25 / portTICK_PERIOD_MS);
 
 
-  xTaskCreatePinnedToCore(canTask, "CAN task", 4096, NULL, 3, &stm.canTask, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(canTask, "CAN task", 8192, NULL, 15, &stm.canTask, PRO_CPU_NUM);
 //  xTaskCreatePinnedToCore(loraTask, "LoRa task", 20000, NULL, 3, &stm.loraTask, PRO_CPU_NUM);
   xTaskCreatePinnedToCore(rxHandlingTask, "Rx handling task", 8192, NULL, 20, &stm.rxHandlingTask, PRO_CPU_NUM);
-  // xTaskCreatePinnedToCore(sdTask,   "SD task",   20000, NULL, 3, &stm.sdTask,   APP_CPU_NUM);
-  xTaskCreatePinnedToCore(dataTask, "Data task", 8192, NULL, 20, &stm.dataTask, APP_CPU_NUM);
+  xTaskCreatePinnedToCore(sdTask,   "SD task",   15360, NULL, 17, &stm.sdTask,   APP_CPU_NUM);
+  xTaskCreatePinnedToCore(dataTask, "Data task", 15360, NULL, 20, &stm.dataTask, APP_CPU_NUM);
   xTaskCreatePinnedToCore(stateTask, "State task", 2048, NULL, 20, &stm.stateTask, APP_CPU_NUM);
-  xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 1024, NULL, 15, &stm.buzzerTask, PRO_CPU_NUM);
+  xTaskCreatePinnedToCore(buzzerTask, "Buzzer task", 1024, NULL, 10, &stm.buzzerTask, PRO_CPU_NUM);
 
 
    if(stm.sdQueue == NULL || stm.loraTxQueue == NULL){

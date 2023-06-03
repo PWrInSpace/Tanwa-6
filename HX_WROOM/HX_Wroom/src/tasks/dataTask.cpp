@@ -89,6 +89,6 @@ void dataTask(void *arg){
     // perror("esp_now_send");
 
 
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
   }
 }

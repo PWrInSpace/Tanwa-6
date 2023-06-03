@@ -27,6 +27,7 @@ struct SoftwareToolsManagment{
   QueueHandle_t espNowRxQueueObc;
 
   QueueHandle_t canRxQueueHxRck;
+  QueueHandle_t canRxQueueHxBtl;
 
   SemaphoreHandle_t i2cMutex;
   SemaphoreHandle_t spiMutex;

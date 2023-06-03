@@ -1,8 +1,11 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <Arduino.h>
+#include "../include/tasks/tasks.h"
 
 extern std::string message;
+// extern SoftwareToolsManagment stm;
+// extern InternalI2C<PWRData, TxData> pwrCom(&stm.i2c, COM_ADRESS);
 
 static bool messageReceivedComplete;
 
@@ -28,7 +31,7 @@ public:
         else if(rxValue =="FILL_OPEN"){
 
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
-            pwrCom.sendCommandMotor(MOTOR_FILL, MOTOR_OPEN);
+            pwrCom.sendCommandMotor(MOTOR_FILL, OPEN_VALVE);
             xSemaphoreGive(stm.i2cMutex);
             printf("######## MOTOOOR FILL ###########\n");
         }
