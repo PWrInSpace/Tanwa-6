@@ -107,24 +107,28 @@ void dataTask(void *arg){
     else
       turnVar = 1;
     //########## ESP NOW STRUCT #######################
-    // loraFrameTanwa.tankWeight_temp = rxDataBtl.temperature;
-    // loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
-    // loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
+    // loraFrameTanwa.tankWeight_blink = rxDataBtl.blink;
+    loraFrameTanwa.tankWeight_temp = rxDataBtl.temperature;
+    loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
+    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
     
-    // loraFrameTanwa.rocketWeight_temp = rxDataRck.temperature;
-    // loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
-    // loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
+    // loraFrameTanwa.rocketWeight_blink = rxDataRck.blink;
+    loraFrameTanwa.rocketWeight_temp = rxDataRck.temperature;
+    loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
+    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
 
     //########## CAN STRUCT ######################
-    loraFrameTanwa.tankWeight_temp = rxDataBtl_CAN.temperature;
-    loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
-    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
+    // loraFrameTanwa.tankWeight_blink = rxDataBtl_CAN.blink;
+    // loraFrameTanwa.tankWeight_temp = rxDataBtl_CAN.temperature;
+    // loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
+    // loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
 
-    loraFrameTanwa.rocketWeight_temp = rxDataRck_CAN.temperature;
-    loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
-    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
+    // loraFrameTanwa.rocketWeight_blink = rxDataRck_CAN.blink;
+    // loraFrameTanwa.rocketWeight_temp = rxDataRck_CAN.temperature;
+    // loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
+    // loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
 
-    //TODO dodać zapis butli
+
     snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
     // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeightRck, (void*)data, 0);
@@ -159,7 +163,7 @@ void dataTask(void *arg){
         loraFrameTanwa.hxRequest_RCK = 0;
     }
 
-       if(rxDataBtl.request == ANSWER){
+    if(rxDataBtl.request == ANSWER){
         loraFrameTanwa.hxRequest_TANK = 1;
     }else if(rxDataBtl.request == ANSWER){
         loraFrameTanwa.hxRequest_TANK = 2;
@@ -183,6 +187,10 @@ void dataTask(void *arg){
     dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
     dataFrame.motorState_3 = loraFrameTanwa.motorState_3;
     dataFrame.motorState_4 = loraFrameTanwa.motorState_4;
+    // dataFrame.tankWeight_blink = loraFrameTanwa.tankWeight_blink;
+    // dataFrame.rocketWeight_blink = loraFrameTanwa.rocketWeight_blink;
+    dataFrame.tankWeight_temp = loraFrameTanwa.tankWeight_temp;
+    dataFrame.rocketWeight_temp = loraFrameTanwa.rocketWeight_temp;
     dataFrame.rocketWeight_val = loraFrameTanwa.rocketWeight_val;
     dataFrame.tankWeight_val = loraFrameTanwa.tankWeight_val;
     dataFrame.rocketWeightRaw_val = loraFrameTanwa.rocketWeightRaw_val;
@@ -190,7 +198,7 @@ void dataTask(void *arg){
 
     createDataFrame(dataFrame, data);
     // Serial.println(data);
-
+    //TODO  lora command send on
     // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
@@ -201,34 +209,34 @@ void dataTask(void *arg){
     xSemaphoreGive(stm.i2cMutex);
 
     //TODO UNCOMMENT + change pin or solder correct pull up
-    if(abrtButton == 1){
+    // if(abrtButton == 1){
 
-      Serial.println("############## CALIBRATE RCK ################");
+    //   Serial.println("############## CALIBRATE RCK ################");
       
-      xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      expander.setPinX(5,A,OUTPUT, OFF);
-      xSemaphoreGive(stm.i2cMutex);
+    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    //   expander.setPinX(5,A,OUTPUT, OFF);
+    //   xSemaphoreGive(stm.i2cMutex);
 
-      txDataRck.request = ASK;
-      txDataRck.offset = 1000;
-      txDataRck.command = CALIBRATE_HX;
-      esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
-      if(digitalRead(HX1_SCL) == HIGH){
+    //   txDataRck.request = ASK;
+    //   txDataRck.offset = 1000;
+    //   txDataRck.command = CALIBRATE_HX;
+    //   esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+    //   vTaskDelay(10000 / portTICK_PERIOD_MS);
+    // }
+    //   if(digitalRead(HX1_SCL) == HIGH){
 
-      Serial.println("############ CALIBRATE BTL ##############");
+    //   Serial.println("############ CALIBRATE BTL ##############");
       
-      xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      expander.setPinX(5,A,OUTPUT, OFF);
-      xSemaphoreGive(stm.i2cMutex);
+    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    //   expander.setPinX(5,A,OUTPUT, OFF);
+    //   xSemaphoreGive(stm.i2cMutex);
 
-      txDataBtl.request = ASK;
-      txDataBtl.offset = 1000;
-      txDataBtl.command = CALIBRATE_HX;
-      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
+    //   txDataBtl.request = ASK;
+    //   txDataBtl.offset = 1000;
+    //   txDataBtl.command = CALIBRATE_HX;
+    //   esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+    //   vTaskDelay(10000 / portTICK_PERIOD_MS);
+    // }
 
     // // //################### real abort content ###################
     // //   // abort_count++;
@@ -284,7 +292,8 @@ void dataTask(void *arg){
     Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
 
-
+    // Serial.print("TANK BLNK:  "); Serial.print(loraFrameTanwa.tankWeight_blink);
+    // Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(loraFrameTanwa.rocketWeight_blink);
     Serial.print("TANK WEIGHT: "); Serial.print(loraFrameTanwa.tankWeight_val);
     Serial.print("\t\tROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
     Serial.print("TANK WEIGHT RAW: "); Serial.print(loraFrameTanwa.tankWeightRaw_val);
@@ -304,6 +313,6 @@ void dataTask(void *arg){
     esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame)); //DO NOT USE FOR OBC due hx request type STRING
     
-    vTaskDelay(500 / portTICK_PERIOD_MS); 
+    vTaskDelay(1000 / portTICK_PERIOD_MS); 
   }
 }

@@ -5,7 +5,8 @@
 
 using namespace std;
 RxData rxData;
-
+bool esp_flag = true;
+bool can_flag = false;
 
 
 void rxHandlingTask(void* arg){
@@ -64,7 +65,6 @@ void rxHandlingTask(void* arg){
 
         case SET_CAL_FACTOR_:{
 
-        
           HxWeight.set_scale(rxData.offset);
           break;
         }
@@ -79,7 +79,21 @@ void rxHandlingTask(void* arg){
         case SOFT_RESTART_:{
           esp_restart();
           break;
-      }
+        }
+
+        case ESP_INTERFACE_:{
+          esp_flag = true;
+          can_flag = false;
+          Serial.println("####### ESP INTERFACE #########");
+          break;
+        }
+
+        case CAN_INTERFACE_:{
+          esp_flag = false;
+          can_flag = true;
+          Serial.println("####### CAN INTERFACE #########");
+          break;
+        }
 
         default:
           break;

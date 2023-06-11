@@ -5,6 +5,8 @@
 char data[256] = {};
 extern float temp_cal_factor;
 extern RxData rxData;
+extern bool esp_flag;
+extern bool can_flag;
 
 RxData rxData_CAN;
 TxData txData_CAN;
@@ -19,6 +21,7 @@ void dataTask(void *arg){
   float HxWeight_unit;
   float HxWeight_temp;
   TxData dataFrame;
+  int blink_indicator = 0;
 
 
   Serial.print("WEIGHT: \n");
@@ -40,9 +43,11 @@ void dataTask(void *arg){
 
   while (rxData.request != ANSWER) {
 
+    blink_indicator = !blink_indicator;
+    dataFrame.blink = blink_indicator;
     dataFrame.request = ASK;
     txData_CAN.request = ASK;
-    canSend();
+    // canSend();
     esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
     Serial.println("SENDING ASK");
     Serial.println(dataFrame.request);
@@ -56,6 +61,8 @@ void dataTask(void *arg){
   Serial.print("OFFSET = "); Serial.println(HxWeight.get_offset());
   dataFrame.request = WORK;
   txData_CAN.request = WORK;
+  blink_indicator = !blink_indicator;
+  dataFrame.blink = blink_indicator;
   esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
 
 
@@ -69,15 +76,20 @@ void dataTask(void *arg){
     HxWeight_temp = tempsensor.getTemp();
     HxWeight_unit = HxWeight.get_units(10);
     HxWeight_raw = (uint32_t) HxWeight.get_value(10);
+    blink_indicator = !blink_indicator;
+   
 
+    Serial.print("Blink = ");Serial.println(blink_indicator);
     Serial.print("Temperature = ");Serial.print(tempsensor.getTemp());Serial.println(" C");
     Serial.print("WEIGHT: "); Serial.println(HxWeight_unit);
     Serial.print("WEIGHT RAW: "); Serial.println(HxWeight_raw);
 
-    txData_CAN.weight = HxWeight_unit;
-    txData_CAN.weight_raw = (uint32_t)HxWeight_raw;
-    txData_CAN.temperature = HxWeight_temp;
+    // txData_CAN.blink = blink_indicator;
+    // txData_CAN.weight = HxWeight_unit;
+    // txData_CAN.weight_raw = (uint32_t)HxWeight_raw;
+    // txData_CAN.temperature = HxWeight_temp;
 
+    dataFrame.blink = blink_indicator;
     dataFrame.weight = HxWeight_unit;
     dataFrame.weight_raw = (uint32_t)HxWeight_raw;
     dataFrame.temperature = HxWeight_temp;
@@ -85,10 +97,10 @@ void dataTask(void *arg){
     createDataFrame(dataFrame, data);
     Serial.print("DATA SENT:  "); Serial.println(data);
     esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
-    canSend();
+    // canSend();
     // perror("esp_now_send");
 
 
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }

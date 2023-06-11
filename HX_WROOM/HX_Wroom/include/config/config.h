@@ -33,5 +33,8 @@
 #define SET_CAL_FACTOR_ 72
 #define SET_OFFSET_ 73
 #define SOFT_RESTART_ 99
+#define ESP_INTERFACE_ 80
+#define CAN_INTERFACE_ 90
+
 
 #endif

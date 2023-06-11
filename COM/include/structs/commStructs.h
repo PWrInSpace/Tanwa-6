@@ -43,12 +43,14 @@ struct TxData_Hx{
 
 
 struct RxData_Hx{
+  int blink;
   String request;
   float weight;
   uint32_t weight_raw;
   float temperature;
 
   RxData_Hx():
+    blink(0),
     request(""),
     weight(0),
     weight_raw(0),
@@ -90,7 +92,9 @@ struct DataFrame{
   uint8_t motorState_2;
   uint8_t motorState_3;
   uint8_t motorState_4;
+  int rocketWeight_blink;
   float rocketWeight_temp;
+  int tankWeight_blink;
   float tankWeight_temp;
   float rocketWeight_val;
   float tankWeight_val; 
@@ -116,7 +120,9 @@ struct DataFrame{
     motorState_2(0),
     motorState_3(0),
     motorState_4(0),
+    rocketWeight_blink(0),
     rocketWeight_temp(0),
+    tankWeight_blink(0),
     tankWeight_temp(0),
     rocketWeight_val(0),
     tankWeight_val(0),

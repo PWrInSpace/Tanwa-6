@@ -23,12 +23,14 @@ struct Options{
 };
 
 struct TxData{
+  int blink;
   String request;
   float weight;
   uint32_t weight_raw;
   float temperature;
 
   TxData():
+    blink(0),
     request(""),
     weight(0),
     weight_raw(0),

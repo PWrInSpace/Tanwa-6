@@ -4,6 +4,7 @@
 #include "pb_encode.h"
 
 static void lora_read_message_and_put_on_queue(void) {
+ 
   String rxStr = "";
   uint32_t start_time = millis();
   uint32_t timeout = 250;
@@ -27,19 +28,27 @@ static void lora_read_message_and_put_on_queue(void) {
   if (rx_size < LORA_RX_FRAME_SIZE - 1) {
     memcpy(rx_buffer, rxStr.c_str(), rx_size);
     // rx_buffer[rx_size] = '\0';
-    pb_istream_t stream_rx = pb_istream_from_buffer(rx_buffer, sizeof(rx_size));
-    status_rx = pb_decode(&stream_rx, LoRaCommandTanwa_fields, &loraCommandTanwa_Rx_loc);
+    pb_istream_t stream_rx = pb_istream_from_buffer(rx_buffer, rx_size);
+    status_rx = pb_decode(&stream_rx, &LoRaCommandTanwa_msg, &loraCommandTanwa_Rx_loc);
 
     if (!status_rx)
     {
         printf("Decoding failed: %s\n", PB_GET_ERROR(&stream_rx));
+    }else{
+      printf("Decoding success\n");
+      xQueueSend(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx_loc, 0); ///// HEREE
     }
-    xQueueSend(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx_loc, 0); ///// HEREE
+    
   }
 }
 
 void loraTask(void *arg){
-  char loraTx[LORA_TX_FRAME_SIZE] = {};
+  LoRaFrameTanwa loraTx;
+
+  uint8_t buffer[256];
+  pb_ostream_t ostream;
+  pb_istream_t istream;
+  size_t written;
   // char loraRx[LORA_RX_FRAME_SIZE] = {};
 
   //TanWaControl * tc = static_cast<TanWaControl*>(arg);
@@ -59,7 +68,7 @@ void loraTask(void *arg){
   }
 
   LoRa.setSignalBandwidth(250E3);
-  LoRa.disableCrc();
+  LoRa.enableCrc();
   LoRa.setSpreadingFactor(7);
   LoRa.setTxPower(14);
   LoRa.setTimeout(10);
@@ -72,17 +81,29 @@ void loraTask(void *arg){
     xSemaphoreTake(stm.spiMutex, portMAX_DELAY);
     if (LoRa.parsePacket() != 0) {
       if (LoRa.available()) {
-
+        Serial.println("  22222222222 Lora message received  22222222222222222222");
         lora_read_message_and_put_on_queue();
       }
     }
+
     xSemaphoreGive(stm.spiMutex);
 
     if(xQueueReceive(stm.loraTxQueue, (void*)&loraTx, 0) == pdTRUE){
       xSemaphoreTake(stm.spiMutex, portMAX_DELAY);
-        
+      
+      LoRaFrameTanwa original = LoRaFrameTanwa_init_zero;
+      ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+      pb_encode(&ostream,&LoRaFrameTanwa_msg , &loraTx);
+
+      written = ostream.bytes_written;
+
+      pb_istream_from_buffer(buffer, written);
+
+
+
       LoRa.beginPacket();
-      LoRa.write((uint8_t*) loraTx, strlen(loraTx));
+      LoRa.write((uint8_t*) buffer, written);
       LoRa.endPacket();
 
       xSemaphoreGive(stm.spiMutex);

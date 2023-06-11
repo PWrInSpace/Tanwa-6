@@ -22,8 +22,8 @@ void setup() {
 
 
   WiFi.mode(WIFI_STA);
-  // esp_wifi_set_mac(WIFI_IF_STA , adressHxBtl);
-  esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
+  esp_wifi_set_mac(WIFI_IF_STA , adressHxBtl);//###################### addresses ########################
+  // esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
 
 
   EEPROM.begin(EEPROM_SIZE);
