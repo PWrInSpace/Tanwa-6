@@ -180,8 +180,8 @@ void dataTask(void *arg){
     dataFrame.abortButton = loraFrameTanwa.abortButton;
     dataFrame.igniterContinouity_1 = loraFrameTanwa.igniterContinouity_1;
     dataFrame.igniterContinouity_2 = loraFrameTanwa.igniterContinouity_2;
-    dataFrame.hxRequest_RCK = rxDataRck.request;
-    dataFrame.hxRequest_TANK = rxDataBtl.request;
+    dataFrame.hxRequest_RCK =  loraFrameTanwa.hxRequest_RCK;
+    dataFrame.hxRequest_TANK =  loraFrameTanwa.hxRequest_TANK;
     dataFrame.vbat = loraFrameTanwa.vbat;
     dataFrame.motorState_1 = loraFrameTanwa.motorState_1;
     dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
@@ -302,15 +302,15 @@ void dataTask(void *arg){
     Serial.print("\t\tROCKET TEMPERATURE: "); Serial.println(loraFrameTanwa.rocketWeight_temp);
     // Serial.print("ROCKET WEIGHT OFFSET: "); Serial.println(rckWeight.get_offset());
 
-    Serial.print("HX REQUEST TANK: "); Serial.print(loraFrameTanwa.hxRequest_TANK);
-    Serial.print("\t\tHX REQUEST RCK: "); Serial.println(loraFrameTanwa.hxRequest_RCK);
+    Serial.print("HX REQUEST TANK: "); Serial.print(rxDataBtl.request);
+    Serial.print("\t\tHX REQUEST RCK: "); Serial.println(rxDataRck.request);
     Serial.print("continuity 1 "); Serial.println(loraFrameTanwa.igniterContinouity_1);
     Serial.print("continuity 2 "); Serial.println(loraFrameTanwa.igniterContinouity_2);
    
     Serial.println();
 
 
-    esp_now_send(adressObc, (uint8_t*) &loraFrameTanwa, sizeof(loraFrameTanwa));
+    esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(dataFrame));
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame)); //DO NOT USE FOR OBC due hx request type STRING
     
     vTaskDelay(1000 / portTICK_PERIOD_MS); 

@@ -85,8 +85,8 @@ struct DataFrame{
   bool abortButton : 1;
   bool igniterContinouity_1;
   bool igniterContinouity_2;
-  String hxRequest_RCK;
-  String hxRequest_TANK;
+  uint8_t hxRequest_RCK;
+  uint8_t  hxRequest_TANK;
   float vbat;
   uint8_t motorState_1;
   uint8_t motorState_2;
@@ -113,8 +113,8 @@ struct DataFrame{
     abortButton(0),
     igniterContinouity_1(0),
     igniterContinouity_2(0),
-    hxRequest_RCK(""),
-    hxRequest_TANK(""),
+    hxRequest_RCK(0),
+    hxRequest_TANK(0),
     vbat(0),
     motorState_1(0),
     motorState_2(0),
