@@ -12,8 +12,8 @@ void createDataFrame(TxData df, char *data){
   snprintf(loraFrame, loraDataSize,  "%d;%0.2f;%d;%0.2f",
    df.blink, df.weight, df.weight_raw, df.temperature);//10
   
-  strcpy(data, DATA_PREFIX_BTL);
-  // strcpy(data, DATA_PREFIX);
+  // strcpy(data, DATA_PREFIX_BTL);
+  strcpy(data, DATA_PREFIX);
   strcat(data, loraFrame);
   strcat(data, "\n");
 }

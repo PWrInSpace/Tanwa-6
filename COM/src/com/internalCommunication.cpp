@@ -29,6 +29,10 @@ bool InternalI2C<rxType, txType>::getData(rxType* _data){
   i2c->requestFrom(address, sizeof(rxType));
   if (i2c->available()) {
     if (!i2c->readBytes((uint8_t*)_data, sizeof(rxType))) {
+      ledcWriteTone(0, 2000);
+      ledcWrite(0, 255);
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      ledcWrite(0, 0);
       return false;
     }
   }

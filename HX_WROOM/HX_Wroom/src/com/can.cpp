@@ -40,8 +40,8 @@ void canSend(){
     Serial.println(Data);
     
 
-    int id = 0xb00011;//HX RCK
-    // int id = 0xb00012;//HX BTL
+    // int id = 0xb00011;//HX RCK
+    int id = 0xb00012;//HX BTL
 
     uint8_t buff [8] = {0};
     // Serial.print("BUFF: "); Serial.println(String(*buff));
@@ -82,8 +82,8 @@ void onReceive(int packetSize) {
     } else {
         // Serial.print(" and length ");
         // Serial.println(packetSize);
-        // if(CAN.packetId() == 0x000011){//HX RCK
-        if(CAN.packetId() == 0x000012){//HX BTL
+        if(CAN.packetId() == 0x000011){//HX RCK
+        // if(CAN.packetId() == 0x000012){//HX BTL
             
         
             // only print packet data for non-RTR packets

@@ -18,9 +18,7 @@ message LoRaFrameTanwa {
     required uint32 motorState_2 = 12;
     required uint32 motorState_3 = 13;
     required uint32 motorState_4 = 14;
-    // required uint32 rocketWeight_blink = 15;
     required float rocketWeight_temp = 15;
-    // required uint32 tankWeight_blink = 17;
     required float tankWeight_temp = 16;
     required float rocketWeight_val = 17;
     required float tankWeight_val = 18; 

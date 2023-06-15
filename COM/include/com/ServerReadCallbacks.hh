@@ -33,8 +33,44 @@ public:
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_FILL, OPEN_VALVE);
             xSemaphoreGive(stm.i2cMutex);
-            printf("######## MOTOOOR FILL ###########\n");
+            printf("######## MOTOOOR FILL OPEN ###########\n");
         }
+          else if(rxValue =="FILL_CLOSE"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR FILL CLOSE ###########\n");
+        }
+         else if(rxValue =="DEPR_OPEN"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_DEPR, OPEN_VALVE);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR DEPR OPEN ###########\n");
+        }
+          else if(rxValue =="DEPR_CLOSE"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_DEPR, CLOSE_VALVE);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR DEPR CLOSE ###########\n");
+        } 
+        else if(rxValue =="QD_OPEN"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, OPEN_VALVE);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD OPEN ###########\n");
+        }
+          else if(rxValue =="QD_CLOSE"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, CLOSE_VALVE);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD CLOSE ###########\n");
+        }
+        
 
        
     }

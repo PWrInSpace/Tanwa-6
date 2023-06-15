@@ -5,6 +5,7 @@ float HX711_api::calibration(int known_mass){
 
 
     set_scale();    
+    Serial.print("CALIBRATE WITH = "); Serial.print(known_mass); Serial.println("g");
     Serial.println("################   Tare... remove any weights from the scale.   #############");
     vTaskDelay(5000 / portTICK_PERIOD_MS);
     tare();

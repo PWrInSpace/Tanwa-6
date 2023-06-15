@@ -3,6 +3,32 @@
 #include "pb_decode.h"
 #include "pb_encode.h"
 
+#define PACKET_PREFIX "SP3MIK"
+
+static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
+    uint8_t sum = 0;
+    for (size_t i = 0; i < size; ++i) {
+        sum += buffer[i];
+    }
+
+    return sum;
+}
+
+static bool check_prefix(uint8_t* packet, size_t packet_size) {
+    if (packet_size < sizeof(PACKET_PREFIX)) {
+        return false;
+    }
+
+    uint8_t prefix[] = PACKET_PREFIX;
+    for (int i = 0; i < sizeof(PACKET_PREFIX) - 1; ++i) {
+        if (packet[i] != prefix[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static void lora_read_message_and_put_on_queue(void) {
  
   String rxStr = "";
@@ -26,9 +52,21 @@ static void lora_read_message_and_put_on_queue(void) {
 
   size_t rx_size = rxStr.length();
   if (rx_size < LORA_RX_FRAME_SIZE - 1) {
+    uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
     memcpy(rx_buffer, rxStr.c_str(), rx_size);
+    
+    if (check_prefix(rx_buffer, rx_size) == false) {
+      printf("Prefix error\n");
+      return;
+    }
+
+    if (calculate_checksum(rx_buffer + prefix_size, rx_size - prefix_size - 1) != rx_buffer[rx_size - 1]) {
+      printf("Checksum error\n");
+      return;
+    }
+  
     // rx_buffer[rx_size] = '\0';
-    pb_istream_t stream_rx = pb_istream_from_buffer(rx_buffer, rx_size);
+    pb_istream_t stream_rx = pb_istream_from_buffer(rx_buffer + prefix_size, rx_size - prefix_size - 1);
     status_rx = pb_decode(&stream_rx, &LoRaCommandTanwa_msg, &loraCommandTanwa_Rx_loc);
 
     if (!status_rx)
@@ -42,12 +80,21 @@ static void lora_read_message_and_put_on_queue(void) {
   }
 }
 
+static size_t add_prefix(uint8_t* buffer, size_t size) {
+    if (size < 6) {
+        return 0;
+    }
+
+    memcpy(buffer, PACKET_PREFIX, sizeof(PACKET_PREFIX) - 1);
+
+    return sizeof(PACKET_PREFIX) - 1;
+}
+
 void loraTask(void *arg){
   LoRaFrameTanwa loraTx;
 
   uint8_t buffer[256];
   pb_ostream_t ostream;
-  pb_istream_t istream;
   size_t written;
   // char loraRx[LORA_RX_FRAME_SIZE] = {};
 
@@ -89,21 +136,17 @@ void loraTask(void *arg){
     xSemaphoreGive(stm.spiMutex);
 
     if(xQueueReceive(stm.loraTxQueue, (void*)&loraTx, 0) == pdTRUE){
-      xSemaphoreTake(stm.spiMutex, portMAX_DELAY);
-      
-      LoRaFrameTanwa original = LoRaFrameTanwa_init_zero;
-      ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+      uint8_t prefix_size = add_prefix(buffer, sizeof(buffer));
+      ostream = pb_ostream_from_buffer(buffer + prefix_size, sizeof(buffer) - prefix_size);
 
       pb_encode(&ostream,&LoRaFrameTanwa_msg , &loraTx);
 
-      written = ostream.bytes_written;
+      written = ostream.bytes_written + prefix_size;
 
-      pb_istream_from_buffer(buffer, written);
-
-
-
+      xSemaphoreTake(stm.spiMutex, portMAX_DELAY);
       LoRa.beginPacket();
-      LoRa.write((uint8_t*) buffer, written);
+      LoRa.write(buffer, written);
       LoRa.endPacket();
 
       xSemaphoreGive(stm.spiMutex);

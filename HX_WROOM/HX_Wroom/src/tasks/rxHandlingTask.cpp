@@ -30,7 +30,7 @@ void rxHandlingTask(void* arg){
         {     
           rxData.command = NOTHING;    
           float temp_cal_factor2;
-          temp_cal_factor2 = HxWeight.calibration(1000);
+          temp_cal_factor2 = HxWeight.calibration(rxData.offset);
           
           Serial.println("temp cal factor2  "); Serial.println(temp_cal_factor2,3);
           vTaskDelay(2000 / portTICK_PERIOD_MS);

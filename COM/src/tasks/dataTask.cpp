@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 #include "lora.pb.h"
 
+
 LoRaFrameTanwa loraFrameTanwa;
 char data[SD_FRAME_SIZE] = {};
 PWRData pwrData;
@@ -187,8 +188,8 @@ void dataTask(void *arg){
     dataFrame.motorState_2 = loraFrameTanwa.motorState_2;
     dataFrame.motorState_3 = loraFrameTanwa.motorState_3;
     dataFrame.motorState_4 = loraFrameTanwa.motorState_4;
-    // dataFrame.tankWeight_blink = loraFrameTanwa.tankWeight_blink;
-    // dataFrame.rocketWeight_blink = loraFrameTanwa.rocketWeight_blink;
+    dataFrame.tankWeight_blink = rxDataBtl.blink;
+    dataFrame.rocketWeight_blink = rxDataRck.blink;
     dataFrame.tankWeight_temp = loraFrameTanwa.tankWeight_temp;
     dataFrame.rocketWeight_temp = loraFrameTanwa.rocketWeight_temp;
     dataFrame.rocketWeight_val = loraFrameTanwa.rocketWeight_val;
@@ -199,7 +200,7 @@ void dataTask(void *arg){
     createDataFrame(dataFrame, data);
     // Serial.println(data);
     //TODO  lora command send on
-    // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
+    xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
     //TODO check polarity of pin ABORT on esp pull up or down
@@ -209,34 +210,34 @@ void dataTask(void *arg){
     xSemaphoreGive(stm.i2cMutex);
 
     //TODO UNCOMMENT + change pin or solder correct pull up
-    // if(abrtButton == 1){
+    if(abrtButton == 1){
 
-    //   Serial.println("############## CALIBRATE RCK ################");
+      Serial.println("############## CALIBRATE RCK ################");
       
-    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-    //   expander.setPinX(5,A,OUTPUT, OFF);
-    //   xSemaphoreGive(stm.i2cMutex);
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      expander.setPinX(5,A,OUTPUT, OFF);
+      xSemaphoreGive(stm.i2cMutex);
 
-    //   txDataRck.request = ASK;
-    //   txDataRck.offset = 1000;
-    //   txDataRck.command = CALIBRATE_HX;
-    //   esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-    //   vTaskDelay(10000 / portTICK_PERIOD_MS);
-    // }
-    //   if(digitalRead(HX1_SCL) == HIGH){
+      txDataRck.request = ASK;
+      txDataRck.offset = 1900;
+      txDataRck.command = CALIBRATE_HX;
+      esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
+      if(digitalRead(HX1_SCL) == HIGH){
 
-    //   Serial.println("############ CALIBRATE BTL ##############");
+      Serial.println("############ CALIBRATE BTL ##############");
       
-    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
-    //   expander.setPinX(5,A,OUTPUT, OFF);
-    //   xSemaphoreGive(stm.i2cMutex);
+      xSemaphoreTake(stm.i2cMutex, pdTRUE);
+      expander.setPinX(5,A,OUTPUT, OFF);
+      xSemaphoreGive(stm.i2cMutex);
 
-    //   txDataBtl.request = ASK;
-    //   txDataBtl.offset = 1000;
-    //   txDataBtl.command = CALIBRATE_HX;
-    //   esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
-    //   vTaskDelay(10000 / portTICK_PERIOD_MS);
-    // }
+      txDataBtl.request = ASK;
+      txDataBtl.offset = 1890;
+      txDataBtl.command = CALIBRATE_HX;
+      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
 
     // // //################### real abort content ###################
     // //   // abort_count++;
@@ -292,8 +293,8 @@ void dataTask(void *arg){
     Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
 
-    // Serial.print("TANK BLNK:  "); Serial.print(loraFrameTanwa.tankWeight_blink);
-    // Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(loraFrameTanwa.rocketWeight_blink);
+    Serial.print("TANK BLNK:  "); Serial.print(dataFrame.tankWeight_blink); //TODO chabge to lora frame
+    Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(dataFrame.rocketWeight_blink); // TODO change to lora frame
     Serial.print("TANK WEIGHT: "); Serial.print(loraFrameTanwa.tankWeight_val);
     Serial.print("\t\tROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
     Serial.print("TANK WEIGHT RAW: "); Serial.print(loraFrameTanwa.tankWeightRaw_val);
