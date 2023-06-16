@@ -88,16 +88,16 @@ void setup() {
 
  //############################
    //TODO REMEMBER TO UNLOCK IT 
-  nowInit();
-  nowAddPeer(adressObc, 0);
-  nowAddPeer(adressHxRck, 0);
-  nowAddPeer(adressHxBtl, 0);
+  // nowInit();
+  // nowAddPeer(adressObc, 0);
+  // nowAddPeer(adressHxRck, 0);
+  // nowAddPeer(adressHxBtl, 0);
 
-  //   ESP32_blelib::init(
-  //   &pCharacteristicFILL,
-  //   &pCharacteristicDEPR,
-  //   &pCharacteristicQD
-  // );
+    ESP32_blelib::init(
+    &pCharacteristicFILL,
+    &pCharacteristicDEPR,
+    &pCharacteristicQD
+  );
  
 
 

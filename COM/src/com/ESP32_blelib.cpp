@@ -15,6 +15,7 @@ void ESP32_blelib::init(
     // BLEService *pService2 = pServer->createService(BLEUUID((uint16_t)0x1701));
 
     BLEService *pServiceVALVES = pServer->createService(UUID_SERVICE_VALVES);
+    // WYSYLAC NA 1700 !
 
     pServer->setCallbacks(new EchoServerCallbacks());
 

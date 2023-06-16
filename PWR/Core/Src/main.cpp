@@ -672,24 +672,32 @@ void TryReachExpectedState(std::tuple<ValveInterface*,volatile ValveState>& Valv
 	ValveInterface* motor = std::get<0>(Valve);
 	ValveState expectedState = std::get<1>(Valve);
 	if(motor->GetState() == expectedState){
-		motor->Stop();
+//		motor->Stop();
 		return;
 	}
 	else if(expectedState == ValveStateOpen){
-		motor->State = ValveStateAttemptToOpen;
+//		motor->State = ValveStateAttemptToOpen;
 		motor->Open();
+		motor->State = ValveStateOpen;
 	}
 	else if(expectedState == ValveStateClose){
-		motor->State = ValveStateAttemptToClose;
+//		motor->State = ValveStateAttemptToClose;
 		motor->Close();
+		motor->State = ValveStateClose;
 	}
-	else if(expectedState == ValveStateVent){
-		motor->State = ValveStateAttemptToOpen;
-		motor->Open();
-		osDelay(parameter);
-		motor->State = ValveStateAttemptToClose;
-		motor->Close();
+//	else if(expectedState == ValveStateVent){
+////		motor->State = ValveStateAttemptToOpen;
+////		motor->Open();
+////		osDelay(parameter);
+////		motor->State = ValveStateAttemptToClose;
+////		motor->Close();
+//	}
+	else if(expectedState == ValveStateStop){
+		motor->Stop();
+//		osDelay(parameter);
+		motor->State = ValveStateStop;
 	}
+
 }
 
 void setNewExpectedStateOfValveOnVector(std::vector<std::tuple<ValveInterface*,volatile ValveState>>& Valves, const uint8_t& ValveNumber, const ValveState& newExpectedValveState){
@@ -706,11 +714,10 @@ void handleRxStruct(RxStruct rxStruct){
 			HAL_NVIC_SystemReset();
 	}
 	else if(CommandNumValve > 0 && CommandNumValve < 4){ //Valve1 - Valve3
-		if(CommandNumState == 0 || CommandNumState == 1 || CommandNumState == 3){
+		if(CommandNumState == 0 || CommandNumState == 1 || CommandNumState == 3 ||  CommandNumState == 7){
 			setNewExpectedStateOfValveOnVector(ValveList, CommandNumValve - 1, (ValveState)CommandNumState);
 		}
 	}
-
 }
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode){

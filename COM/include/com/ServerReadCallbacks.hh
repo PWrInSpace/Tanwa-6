@@ -60,6 +60,13 @@ public:
 
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, OPEN_VALVE);
+            perror("QD_OPEN1");
+            xSemaphoreGive(stm.i2cMutex);
+
+            vTaskDelay(200 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
             xSemaphoreGive(stm.i2cMutex);
             printf("######## MOTOOOR QD OPEN ###########\n");
         }
@@ -67,8 +74,23 @@ public:
 
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, CLOSE_VALVE);
+            perror("QD_CLOSE1");
+            xSemaphoreGive(stm.i2cMutex);
+
+            vTaskDelay(200 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
+            perror("QD_CLOSE2");
             xSemaphoreGive(stm.i2cMutex);
             printf("######## MOTOOOR QD CLOSE ###########\n");
+        }
+          else if(rxValue =="QD_STOP"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD STOP ###########\n");
         }
         
 
