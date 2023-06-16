@@ -37,7 +37,7 @@ static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 #define MOTOR_QUICK_DISCONNECT 0x03 //remember about that there are 2 of them
 
 
-#define LORA_FREQ_MHZ 868    //927
+#define LORA_FREQ_MHZ 915    //927
 
 //WEIGHTING
 #define BIT_TO_GRAM_RATIO_RCK 53.13
@@ -100,6 +100,8 @@ static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 #define CALIBRATE_HX 71
 #define SET_CAL_FACTOR_HX 72
 #define SET_OFFSET_HX 73
+#define SET_HX_ESP_INTERFACE 0x80
+#define SET_HX_CAN_INTERFACE 0x90
 #define SOFT_RESTART_HX 99
 
 //Expander 

@@ -82,8 +82,8 @@ void onReceive(int packetSize) {
     } else {
         // Serial.print(" and length ");
         // Serial.println(packetSize);
-        if(CAN.packetId() == 0x000011){//HX RCK
-        // if(CAN.packetId() == 0x000012){//HX BTL
+        // if(CAN.packetId() == 0x000011){//HX RCK
+        if(CAN.packetId() == 0x000012){//HX BTL
             
         
             // only print packet data for non-RTR packets

@@ -14,6 +14,10 @@ TxData_Hx txDataBtl;
 // extern MCP23017 expander;
 uint8_t data_buff[SD_FRAME_SIZE];
 extern bool lastWeightFlag;
+bool can_rck_interface = false;
+bool esp_now_rck_interface = true;
+bool can_btl_interface = false;
+bool esp_now_btl_interface = true;
 
 void rxHandlingTask(void* arg){
 
@@ -248,10 +252,18 @@ void rxHandlingTask(void* arg){
         case INTERFACE_RCK_ESP:{
           if(rxDataOBC_temp.commandValue == INTERFACE_CAN_ESP)
           {
-            ////
+            Serial.println("################# INTERFACE RCK CAN ####################");
+            txDataRck.command = SET_HX_CAN_INTERFACE;
+            esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+            can_rck_interface = true;
+            esp_now_rck_interface = false;
           }else if(rxDataOBC_temp.commandValue == INTERFACE_ESPNOW_ESP)
-          {
-              ////
+          {   
+              Serial.println("################# INTERFACE RCK ESP ####################");
+              txDataRck.command = SET_HX_ESP_INTERFACE;
+              esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+              can_rck_interface = false;
+              esp_now_rck_interface = true;
           }
           break;
         }
@@ -260,10 +272,18 @@ void rxHandlingTask(void* arg){
         case INTERFACE_TANK_ESP:{
           if(rxDataOBC_temp.commandValue == INTERFACE_CAN_ESP)
           {
-            /////
+              Serial.println("################# INTERFACE TANK CAN ####################");
+              txDataBtl.command = SET_HX_CAN_INTERFACE;
+              esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+              can_btl_interface = true;
+              esp_now_btl_interface = false;
           }else if(rxDataOBC_temp.commandValue == INTERFACE_ESPNOW_ESP)
           {
-            ////
+            Serial.println("################# INTERFACE TANK ESP ####################");
+            txDataBtl.command = SET_HX_ESP_INTERFACE;
+            esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+            can_btl_interface = false;
+            esp_now_btl_interface = true;
           }
         
           break;
@@ -282,7 +302,7 @@ void rxHandlingTask(void* arg){
         }
 
         case LORA_FREQ_ESP:{
-          ////
+        //
           break;
         }
 
@@ -300,9 +320,7 @@ void rxHandlingTask(void* arg){
         }
       }
     }
-
-      //  Serial.print("KUTAAAAAAAAAAS");
-      //TODO FLAG FROM HX THAT THERE IS NO COMMUNICATION
+   
     if(xQueueReceive(stm.espNowRxQueueHxRck, (void*)&rxData_temp, 0) == pdTRUE){
 
       // Serial.print("ESP NOW FROM HX: ");
@@ -347,7 +365,7 @@ void rxHandlingTask(void* arg){
       uint32_t lora_command;
       uint32_t lora_payload;
     
-      if(loraCommandTanwa_Rx.lora_dev_id == 0x04 || loraCommandTanwa_Rx.lora_dev_id == 0x05 || loraCommandTanwa_Rx.lora_dev_id == 0x00){  
+      if(loraCommandTanwa_Rx.lora_dev_id == 0x04 || loraCommandTanwa_Rx.lora_dev_id == 0x05 || loraCommandTanwa_Rx.lora_dev_id == 0x00 || loraCommandTanwa_Rx.lora_dev_id == 0x01){  
         int i = 1;
     
         lora_command = loraCommandTanwa_Rx.command;
@@ -445,19 +463,16 @@ void rxHandlingTask(void* arg){
           }
 
           case SOFT_RESTART_STM_ESP:{
-            xSemaphoreTake(stm.i2cMutex, pdTRUE);
-            expander.setPinX(4,A,OUTPUT,OFF);
-            xSemaphoreGive(stm.i2cMutex);
-      
-            Serial.println("#################RESET STM####################");
+            digitalWrite(RST, LOW);
+            Serial.println("################# RESET STM ####################");
             vTaskDelay(100 / portTICK_PERIOD_MS);
-            xSemaphoreTake(stm.i2cMutex, pdTRUE);
-            expander.setPinX(4,A,OUTPUT,ON); //TODO CHECK THIS PIN!
-            xSemaphoreGive(stm.i2cMutex);
+            digitalWrite(RST, HIGH);
             break;
           }
           
           case CALIBRATE_RCK_ESP:{
+
+            Serial.println("################# CALIBRATE RCK ####################");
             txDataRck.request = ASK;
             txDataRck.offset = lora_payload;
             txDataRck.command = CALIBRATE_HX;
@@ -467,6 +482,7 @@ void rxHandlingTask(void* arg){
           }
 
           case TARE_RCK_ESP:{
+            Serial.println("################# TARE RCK ####################");
             txDataRck.request = ASK;
             txDataRck.command = TARE_HX;
             esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
@@ -475,6 +491,8 @@ void rxHandlingTask(void* arg){
           }
           
           case SET_CAL_FACTOR_RCK_ESP:{
+          
+            Serial.println("################# SET CAL FACTOR RCK ####################");
             txDataRck.request = ASK;
             txDataRck.offset = lora_payload;
             txDataRck.command = SET_CAL_FACTOR_HX;
@@ -484,6 +502,7 @@ void rxHandlingTask(void* arg){
           }
 
           case SET_OFFSET_RCK_ESP:{
+            Serial.println("################# SET OFFSET RCK ####################");
             txDataRck.request = ASK;
             txDataRck.offset = lora_payload;
             txDataRck.command = SET_OFFSET_HX;
@@ -510,6 +529,7 @@ void rxHandlingTask(void* arg){
           }
 
           case SET_CAL_FACTOR_TANK_ESP:{
+            Serial.println("################# SET CAL FACTOR TANK ####################");
             txDataBtl.request = ASK;
             txDataBtl.offset = lora_payload;
             txDataBtl.command = SET_CAL_FACTOR_HX;
@@ -519,6 +539,7 @@ void rxHandlingTask(void* arg){
           }
 
           case SET_OFFSET_TANK_ESP:{
+            Serial.println("################# SET OFFSET TANK ####################");
             txDataBtl.request = ASK;
             txDataBtl.offset = lora_payload;
             txDataBtl.command = SET_OFFSET_HX;
@@ -546,10 +567,20 @@ void rxHandlingTask(void* arg){
           case INTERFACE_RCK_ESP:{
             if(lora_payload == INTERFACE_CAN_ESP)
             {
+             
+              txDataRck.command = SET_HX_CAN_INTERFACE;
+              esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+              can_rck_interface = true;
+              esp_now_rck_interface = false;
+        
               ////
             }else if(lora_payload == INTERFACE_ESPNOW_ESP)
             {
-                ////
+            
+              txDataRck.command = SET_HX_ESP_INTERFACE;
+              esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+              can_rck_interface = false;
+              esp_now_rck_interface = true;
             }
             break;
           }
@@ -558,10 +589,17 @@ void rxHandlingTask(void* arg){
           case INTERFACE_TANK_ESP:{
             if(lora_payload == INTERFACE_CAN_ESP)
             {
-              /////
+              txDataBtl.command = SET_HX_CAN_INTERFACE;
+              esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+              can_btl_interface = true;
+              esp_now_btl_interface = false;
+
             }else if(lora_payload == INTERFACE_ESPNOW_ESP)
             {
-              ////
+              txDataBtl.command = SET_HX_ESP_INTERFACE;
+              esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+              can_btl_interface = false;
+              esp_now_btl_interface = true;
             }
           
             break;
@@ -570,10 +608,12 @@ void rxHandlingTask(void* arg){
           case INTERFACE_MCU_ESP:{
             if(lora_payload == INTERFACE_CAN_ESP)
             {
-            ////
+              
+
             }else if(lora_payload == INTERFACE_I2C_ESP)
             {
-                /////
+              can_btl_interface = false;
+              esp_now_btl_interface = true;
             }
           
             break;

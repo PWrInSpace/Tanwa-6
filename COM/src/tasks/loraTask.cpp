@@ -73,7 +73,7 @@ static void lora_read_message_and_put_on_queue(void) {
     {
         printf("Decoding failed: %s\n", PB_GET_ERROR(&stream_rx));
     }else{
-      printf("Decoding success\n");
+      printf("Decoding success command %d, payload %d\n", loraCommandTanwa_Rx_loc.command, loraCommandTanwa_Rx_loc.payload);
       xQueueSend(stm.loraRxQueue, (void*)&loraCommandTanwa_Rx_loc, 0); ///// HEREE
     }
     

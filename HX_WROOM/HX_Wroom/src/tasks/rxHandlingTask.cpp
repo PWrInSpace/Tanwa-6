@@ -64,8 +64,10 @@ void rxHandlingTask(void* arg){
         }
 
         case SET_CAL_FACTOR_:{
-
-          HxWeight.set_scale(rxData.offset);
+          float temp_cal;
+          temp_cal = rxData.offset;
+          temp_cal = temp_cal/1000;
+          HxWeight.set_scale(temp_cal);
           break;
         }
 

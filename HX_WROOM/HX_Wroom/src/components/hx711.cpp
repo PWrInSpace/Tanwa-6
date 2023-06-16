@@ -15,6 +15,8 @@ float HX711_api::calibration(int known_mass){
     vTaskDelay(4500 / portTICK_PERIOD_MS);
 
     float cal_factor = get_units(10)/known_mass;
+
+    //get value/scale = known -> scale = value/known
     Serial.print(" ###############CAAAL FAAACTOR: ############## "); Serial.println(cal_factor,3);
     Serial.println(" #####################  REMOVE OBJECT FROM THE SCLAE!  ####################");
     vTaskDelay(4500 / portTICK_PERIOD_MS);

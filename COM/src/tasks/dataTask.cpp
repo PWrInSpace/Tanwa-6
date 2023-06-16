@@ -22,6 +22,11 @@ extern TxData_Hx txDataRck_CAN;
 extern TxData_Hx txDataBtl_CAN;
 extern TxData txData_CAN;
 
+extern bool can_rck_interface;
+extern bool esp_now_rck_interface;
+extern bool can_btl_interface;
+extern bool esp_now_btl_interface;
+
 void dataTask(void *arg){
   Serial.println("DATA TASK");
   uint32_t abort_count = 0;
@@ -108,28 +113,36 @@ void dataTask(void *arg){
     else
       turnVar = 1;
     //########## ESP NOW STRUCT #######################
-    loraFrameTanwa.tankWeight_blink = rxDataBtl.blink;
-    loraFrameTanwa.tankWeight_temp = rxDataBtl.temperature;
-    loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
-    loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
-    
-    loraFrameTanwa.rocketWeight_blink = rxDataRck.blink;
-    loraFrameTanwa.rocketWeight_temp = rxDataRck.temperature;
-    loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
-    loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
 
-    //########## CAN STRUCT ######################
-    // loraFrameTanwa.tankWeight_blink = rxDataBtl_CAN.blink;
-    // loraFrameTanwa.tankWeight_temp = rxDataBtl_CAN.temperature;
-    // loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
-    // loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
+    if(can_btl_interface == false && esp_now_btl_interface == true){
+      Serial.println("ESP NOW BTL");
+      loraFrameTanwa.tankWeight_blink = rxDataBtl.blink;
+      loraFrameTanwa.tankWeight_temp = rxDataBtl.temperature;
+      loraFrameTanwa.tankWeight_val = rxDataBtl.weight;
+      loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl.weight_raw;
+    }else{ //########## CAN STRUCT ######################
+      Serial.println("CAN BTL");
+      loraFrameTanwa.tankWeight_blink = rxDataBtl_CAN.blink;
+      loraFrameTanwa.tankWeight_temp = rxDataBtl_CAN.temperature;
+      loraFrameTanwa.tankWeight_val = rxDataBtl_CAN.weight;
+      loraFrameTanwa.tankWeightRaw_val = (uint32_t) rxDataBtl_CAN.weight_raw;
 
-    // loraFrameTanwa.rocketWeight_blink = rxDataRck_CAN.blink;
-    // loraFrameTanwa.rocketWeight_temp = rxDataRck_CAN.temperature;
-    // loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
-    // loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
+    }
+      //########## ESP NOW STRUCT #######################
+    if(can_rck_interface == false && esp_now_rck_interface == true){
+      Serial.println("ESP NOW RCK");
+      loraFrameTanwa.rocketWeight_blink = rxDataRck.blink;
+      loraFrameTanwa.rocketWeight_temp = rxDataRck.temperature;
+      loraFrameTanwa.rocketWeight_val = rxDataRck.weight;
+      loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck.weight_raw;
+    }else{ //########## CAN STRUCT ######################
+      Serial.println("CAN RCK");
+      loraFrameTanwa.rocketWeight_blink = rxDataRck_CAN.blink;
+      loraFrameTanwa.rocketWeight_temp = rxDataRck_CAN.temperature;
+      loraFrameTanwa.rocketWeight_val = rxDataRck_CAN.weight;
+      loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
 
-
+    }
     snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
     // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeightRck, (void*)data, 0);
@@ -210,7 +223,8 @@ void dataTask(void *arg){
     xSemaphoreGive(stm.i2cMutex);
 
     //TODO UNCOMMENT + change pin or solder correct pull up
-    if(abrtButton == 1){
+    // if(abrtButton == 1){
+    if( analogRead(IGN_TEST_CON_1) > 1000){
 
       Serial.println("############## CALIBRATE RCK ################");
       
@@ -219,12 +233,13 @@ void dataTask(void *arg){
       xSemaphoreGive(stm.i2cMutex);
 
       txDataRck.request = ASK;
-      txDataRck.offset = 1900;
+      txDataRck.offset = 4100;
       txDataRck.command = CALIBRATE_HX;
-      // esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+      esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
-      if(digitalRead(HX1_SCL) == HIGH){
+      // if(digitalRead(HX1_SCL) == HIGH){
+      if( analogRead(IGN_TEST_CON_2) > 1000){
 
       Serial.println("############ CALIBRATE BTL ##############");
       
@@ -233,9 +248,9 @@ void dataTask(void *arg){
       xSemaphoreGive(stm.i2cMutex);
 
       txDataBtl.request = ASK;
-      txDataBtl.offset = 1890;
+      txDataBtl.offset = 4100;
       txDataBtl.command = CALIBRATE_HX;
-      // esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 
@@ -311,7 +326,7 @@ void dataTask(void *arg){
     Serial.println();
 
 
-    // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(dataFrame));
+    esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(dataFrame));
     // esp_now_send(adressObc, (uint8_t*) &dataFrame, sizeof(DataFrame)); //DO NOT USE FOR OBC due hx request type STRING
     
     vTaskDelay(557/ portTICK_PERIOD_MS); 

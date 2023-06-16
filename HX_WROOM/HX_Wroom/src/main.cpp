@@ -6,7 +6,6 @@
 #include "../include/com/now.h"
 #include "../include/com/can.h"
 #include <EEPROM.h>
-//TODO delete one hx - due to single hx on board at individual hx interface
 
 SoftwareToolsManagment stm;
 // HX711
@@ -22,8 +21,8 @@ void setup() {
 
 
   WiFi.mode(WIFI_STA);
-  // esp_wifi_set_mac(WIFI_IF_STA , adressHxBtl);//###################### addresses ########################
-  esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
+  esp_wifi_set_mac(WIFI_IF_STA , adressHxBtl);//###################### addresses ########################
+  // esp_wifi_set_mac(WIFI_IF_STA , adressHxRck);
 
 
   EEPROM.begin(EEPROM_SIZE);

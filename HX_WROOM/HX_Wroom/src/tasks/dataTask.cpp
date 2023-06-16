@@ -84,10 +84,10 @@ void dataTask(void *arg){
     Serial.print("WEIGHT: "); Serial.println(HxWeight_unit);
     Serial.print("WEIGHT RAW: "); Serial.println(HxWeight_raw);
 
-    // txData_CAN.blink = blink_indicator;
-    // txData_CAN.weight = HxWeight_unit;
-    // txData_CAN.weight_raw = (uint32_t)HxWeight_raw;
-    // txData_CAN.temperature = HxWeight_temp;
+    txData_CAN.blink = blink_indicator;
+    txData_CAN.weight = HxWeight_unit;
+    txData_CAN.weight_raw = (uint32_t)HxWeight_raw;
+    txData_CAN.temperature = HxWeight_temp;
 
     dataFrame.blink = blink_indicator;
     dataFrame.weight = HxWeight_unit;
@@ -96,8 +96,14 @@ void dataTask(void *arg){
 
     createDataFrame(dataFrame, data);
     Serial.print("DATA SENT:  "); Serial.println(data);
-    esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
-    // canSend();
+    Serial.print("INTERFACE ESP FLAG = "); Serial.println(esp_flag);
+    Serial.print("INTERFACE CAN FLAG = "); Serial.println(can_flag);
+    if(esp_flag == true && can_flag == false){
+      esp_now_send(adressTanwa, (uint8_t*) &dataFrame, sizeof(TxData));
+    }else{
+      canSend();
+    }
+    
     // perror("esp_now_send");
 
 

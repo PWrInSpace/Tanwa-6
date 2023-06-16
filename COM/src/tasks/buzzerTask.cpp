@@ -6,8 +6,7 @@ void buzzerTask(void *arg){
         if(( analogRead(IGN_TEST_CON_1) > 1000 ||
         analogRead(IGN_TEST_CON_2) > 1000)&& (StateMachine::getCurrentState() <= ARMED_TO_LAUNCH && StateMachine::getCurrentState() != ABORT))
         {
-            // beepBoop(200, 1, SPEAKER);
-            // beepBoop(200, 1, BUZZER);
+
             int E1 = 1318;
             int E2 = 2637;
             int F1 = 1479;
@@ -21,13 +20,14 @@ void buzzerTask(void *arg){
             ledcWrite(0, 0);
             vTaskDelay(200 / portTICK_PERIOD_MS);
 
-
+//##### EXPLOSION  #####
             // int delay1 = 200;
-            //int delay2 = 500;
+            // int delay2 = 500;
             // // beepBoop(50, 1, SPEAKER);
-            // beepBoop(20, 1, BUZZER);
-            // ledcWriteTone(0, 3000);
-            // ledcWrite(0, 255);
+            // // beepBoop(20, 1, BUZZER);
+            // // ledcWriteTone(0, 3000);
+            // // ledcWrite(0, 255);
+             
             // if (once_upon_a_time == true){
             //     once_upon_a_time = false;
             //     ledcWriteTone(0, E1);

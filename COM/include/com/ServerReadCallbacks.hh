@@ -92,7 +92,18 @@ public:
             xSemaphoreGive(stm.i2cMutex);
             printf("######## MOTOOOR QD STOP ###########\n");
         }
-        
+        else if(rxValue == "FIRE"){
+
+            Serial.println("################ ARMING ######################");
+            digitalWrite(ARM_PIN, HIGH);
+            delay(1000);
+            Serial.println("############### FIRE #################");
+            digitalWrite(FIRE1, HIGH);
+            digitalWrite(FIRE2, HIGH);
+            delay(1000);
+            digitalWrite(FIRE1, LOW);
+            digitalWrite(FIRE2, LOW);
+        }  
 
        
     }
