@@ -54,7 +54,7 @@ CAN_RxHeaderTypeDef RxHeader;
 
 //CAN_RxHeaderTypeDef;
 
-TxStruct txStruct = {0,0,{0,0,0,0},{1,1,1}};
+TxStruct txStruct = {0,0,{0,0,0,0},{0,0,0}};
 RxStruct rxStruct = {0,0};
 const uint16_t rxBufferLenght = 10;
 auto rxQueue = xQueueCreate(rxBufferLenght, sizeof(rxStruct));
@@ -113,12 +113,11 @@ const osThreadAttr_t Measure_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
-static void MX_CAN_Init(void);
-static void MX_I2C2_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_I2C2_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM4_Init(void);
 void TaskCOM(void *argument);
 void TaskValves(void *argument);
@@ -160,15 +159,13 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_CAN_Init();
-
-  MX_ADC1_Init();
   MX_TIM1_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_I2C2_Init();
+   MX_TIM3_Init();
+   MX_TIM4_Init();
+   MX_GPIO_Init();
+   MX_DMA_Init();
+   MX_ADC1_Init();
+   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_CAN_Start(&hcan);
@@ -307,79 +304,27 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 8;
+  hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Configure Regular Channel
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_2;
-  sConfig.Rank = ADC_REGULAR_RANK_2;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_3;
-  sConfig.Rank = ADC_REGULAR_RANK_3;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_4;
-  sConfig.Rank = ADC_REGULAR_RANK_4;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_5;
-  sConfig.Rank = ADC_REGULAR_RANK_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_6;
-  sConfig.Rank = ADC_REGULAR_RANK_6;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_7;
-  sConfig.Rank = ADC_REGULAR_RANK_7;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_9;
-  sConfig.Rank = ADC_REGULAR_RANK_8;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+  /** Configure Regular Channel
+  */
+
 
 }
 
@@ -893,13 +838,24 @@ void TaskValves(void *argument)
 void TaskMeasure(void *argument)
 {
   /* USER CODE BEGIN TaskMeasure */
-	volatile uint16_t ADCData[8] = {1,1,1,1,1,1,1,1};
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADCData, 8);
-	float ADCDividerRatio[8] = {1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096), 5.7 * (3.3 / 4096), 1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096)};
+	volatile uint16_t ADCData[3] = {1,1,1};
+//	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADCData, 3);
+	float ADCDividerRatio[3] = {1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096), 1.0 * (3.3 / 4096)};
 	bool tick = false;
+	uint16_t AD_RES = 0;
 	/* Infinite loop */
 	while(true){
 		tick = !tick;
+
+
+
+
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, 100);
+		AD_RES = HAL_ADC_GetValue(&hadc1);
+		ADCData[0] = AD_RES;
+
+
 		txStruct = {
 			tick,
 			txStruct.lastDoneCommandNum,
@@ -915,6 +871,8 @@ void TaskMeasure(void *argument)
 				ADCData[2]	//Solenoid 2 ADC
 			}
 		};
+//		ADC1->CR2 |= ADC_CR2_DMA;
+//		ADC1->CR1 |= ADC_CR1_SCAN;
 		osDelay(500);
 	}
   /* USER CODE END TaskMeasure */

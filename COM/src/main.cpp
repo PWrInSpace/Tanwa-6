@@ -40,8 +40,21 @@ void setup() {
   
   
   stm.i2c.begin(I2C_SDA, I2C_SCL, 100E3);
-  stm.i2c.setTimeOut(20);
+  stm.i2c.setTimeOut(100);
+  stm.i2cMutex = xSemaphoreCreateMutex();
+
   stm.spi.begin();
+
+  xSemaphoreTake(stm.i2cMutex, pdTRUE);
+  pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
+  pwrCom.sendCommandMotor(MOTOR_DEPR, CLOSE_VALVE);
+  xSemaphoreGive(stm.i2cMutex);
+  Serial.println("######## MOTOOOR FILL CLOSED ON INIT ###########\n");
+  Serial.println("######## MOTOOOR DEPR CLOSED ON INIT ###########\n");
+
+
+
+
   //DEBUG
 //#######################################
   while(!expander.Init()){
@@ -118,7 +131,7 @@ void setup() {
   stm.canRxQueueHxRck = xQueueCreate(1000, sizeof(char));
   stm.canRxQueueHxBtl = xQueueCreate(1000, sizeof(char));
 
-  stm.i2cMutex = xSemaphoreCreateMutex();
+
   stm.spiMutex = xSemaphoreCreateMutex();
   stm.canMutex = xSemaphoreCreateMutex();
 

@@ -159,8 +159,7 @@ void dataTask(void *arg){
     loraFrameTanwa.motorState_2 = pwrData.motorState[1];
     loraFrameTanwa.motorState_3 = pwrData.motorState[2];
     loraFrameTanwa.motorState_4 = pwrData.motorState[3];
-
-  
+ 
 
     loraFrameTanwa.tanWaState = StateMachine::getCurrentState();
     // Serial.println(analogRead(IGN_TEST_CON_1));
@@ -217,7 +216,7 @@ void dataTask(void *arg){
     // xQueueSend(stm.loraTxQueue, (void*)&loraFrameTanwa, 0);
 
     xQueueSend(stm.sdQueue, (void*)data, 0); 
-    //TODO check polarity of pin ABORT on esp pull up or down
+
     xSemaphoreTake(stm.i2cMutex, pdTRUE);
     abrtButton = !expander.getPin(0,B);
     SD_cont = !expander.getPin(7,A);
@@ -225,7 +224,7 @@ void dataTask(void *arg){
 
     //TODO UNCOMMENT + change pin or solder correct pull up
     // if(abrtButton == 1){
-    if( analogRead(IGN_TEST_CON_2) > 1000){
+    if( analogRead(IGN_TEST_CON_1) > 1000){
 
       Serial.println("############## CALIBRATE RCK ################");
       
@@ -239,8 +238,8 @@ void dataTask(void *arg){
       esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
-      if(digitalRead(HX1_SCL) == HIGH){
-      // if( analogRead(IGN_TEST_CON_2) > 1000){
+      // if(digitalRead(HX1_SCL) == HIGH){
+      if( analogRead(IGN_TEST_CON_2) > 1000){
 
       Serial.println("############ CALIBRATE BTL ##############");
       
@@ -249,7 +248,7 @@ void dataTask(void *arg){
       xSemaphoreGive(stm.i2cMutex);
 
       txDataBtl.request = ASK;
-      txDataBtl.offset = 4100;
+      txDataBtl.offset = 15650;
       txDataBtl.command = CALIBRATE_HX;
       esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
@@ -303,14 +302,14 @@ void dataTask(void *arg){
     Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
     
 
-    Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[0]);
+    Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[1]);
 
-    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[0],450, 4096, 0, 80);
+    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[1],450, 4096, 0, 80);
     Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
 
-    Serial.print("TANK BLNK:  "); Serial.print(loraFrameTanwa.tankWeight_blink); //TODO chabge to lora frame
-    Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(loraFrameTanwa.rocketWeight_blink); // TODO change to lora frame
+    Serial.print("TANK BLNK:  "); Serial.print(loraFrameTanwa.tankWeight_blink); 
+    Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(loraFrameTanwa.rocketWeight_blink);
     Serial.print("TANK WEIGHT: "); Serial.print(loraFrameTanwa.tankWeight_val);
     Serial.print("\t\tROCKET WEIGHT: "); Serial.println(loraFrameTanwa.rocketWeight_val);
     Serial.print("TANK WEIGHT RAW: "); Serial.print(loraFrameTanwa.tankWeightRaw_val);
