@@ -143,6 +143,7 @@ void dataTask(void *arg){
       loraFrameTanwa.rocketWeightRaw_val = (uint32_t) rxDataRck_CAN.weight_raw;
 
     }
+
     snprintf(data, sizeof(data), "%.2f", loraFrameTanwa.rocketWeight_val);
     // Serial.print("DATA TO BE SAVED: "); Serial.println(data);
     xQueueSend(stm.sdQueue_lastWeightRck, (void*)data, 0);
@@ -224,7 +225,7 @@ void dataTask(void *arg){
 
     //TODO UNCOMMENT + change pin or solder correct pull up
     // if(abrtButton == 1){
-    if( analogRead(IGN_TEST_CON_1) > 1000){
+    if( analogRead(IGN_TEST_CON_2) > 1000){
 
       Serial.println("############## CALIBRATE RCK ################");
       
@@ -238,8 +239,8 @@ void dataTask(void *arg){
       esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
-      // if(digitalRead(HX1_SCL) == HIGH){
-      if( analogRead(IGN_TEST_CON_2) > 1000){
+      if(digitalRead(HX1_SCL) == HIGH){
+      // if( analogRead(IGN_TEST_CON_2) > 1000){
 
       Serial.println("############ CALIBRATE BTL ##############");
       

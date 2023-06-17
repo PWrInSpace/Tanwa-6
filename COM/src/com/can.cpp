@@ -112,6 +112,8 @@ void onReceive(int packetSize) {
     if (CAN.packetRtr()) {
        
     } else {
+        // Serial.println("ID: ###########################################################");
+        //   Serial.println(CAN.packetId(), HEX);
         // Serial.print(" and length ");
         // Serial.println(packetSize);
 
@@ -120,11 +122,14 @@ void onReceive(int packetSize) {
             // Serial.println(CAN.packetId(), HEX);
             int i = 0;
             char Data1[100] = {'\0'};
+            //  Serial.println("\n\n\n\n\n CAAAAAAAAAAAAAN\n\n\n");
+            //       Serial.print((char)CAN.read());
+            //     Serial.println(CAN.packetId(), HEX);
            
             // Serial.println("RCK   :");
 
             while (CAN.available() && CAN.packetId() == 0xb00011) { 
-            
+                
                 //   Serial.print((char)CAN.read());
                 // Serial.println(CAN.packetId(), HEX);
                 
@@ -145,7 +150,7 @@ void onReceive(int packetSize) {
             // Serial.println("RCK   :");
 
             while (CAN.available() && CAN.packetId() == 0xb00012) { 
-            
+                // Serial.println("\n\n\n\n\n CAAAAAAAAAAAAAN\n\n\n");
                 //   Serial.print((char)CAN.read());
                 // Serial.println(CAN.packetId(), HEX);
                 
@@ -171,6 +176,5 @@ void onReceive(int packetSize) {
     }
 
     // Serial.println();
-    // vTaskDelay(1 / portTICK_PERIOD_MS);
 }
 

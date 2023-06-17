@@ -100,8 +100,8 @@ static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 #define CALIBRATE_HX 71
 #define SET_CAL_FACTOR_HX 72
 #define SET_OFFSET_HX 73
-#define SET_HX_ESP_INTERFACE 0x80
-#define SET_HX_CAN_INTERFACE 0x90
+#define SET_HX_ESP_INTERFACE 80
+#define SET_HX_CAN_INTERFACE 90
 #define SOFT_RESTART_HX 99
 
 //Expander 

@@ -55,7 +55,7 @@ void canSend(){
 
             buff[j] = Data[i+j];
             
-            // Serial.print((String)buff[j]);
+            Serial.print((String)buff[j]);
         }
         // Serial.print("\n");
         CAN.write(buff, 8);

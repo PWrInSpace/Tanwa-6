@@ -10,6 +10,11 @@ extern TxData_Hx txDataRck_CAN;
 extern TxData_Hx txDataBtl_CAN;
 extern TxData txData_CAN;
 
+extern bool can_rck_interface;
+extern bool esp_now_rck_interface;
+extern bool can_btl_interface;
+extern bool esp_now_btl_interface;
+
 
 void canTask(void *arg){
 
@@ -37,7 +42,7 @@ void canTask(void *arg){
 
     while(1){
       
-        if(xQueueReceive(stm.canRxQueueHxRck, (void*)&Data_RCK_temp, 0) == pdTRUE){
+        if(xQueueReceive(stm.canRxQueueHxRck, (void*)&Data_RCK_temp, 0) == pdTRUE && can_rck_interface == true){
             if(Data_RCK_temp == '!'){
                 // Serial.println();
                 // Serial.println("START FLAG");
@@ -50,7 +55,7 @@ void canTask(void *arg){
 
         while(start_frame_flag_rck == 1 && end_frame_flag_rck == 0){
 
-            if(xQueueReceive(stm.canRxQueueHxRck, (void*)&Data_RCK_temp, 0) == pdTRUE){
+            if(xQueueReceive(stm.canRxQueueHxRck, (void*)&Data_RCK_temp, 0) == pdTRUE && can_rck_interface == true){
                 
                 if(Data_RCK_temp == '?'){
                     Data_RCK[i] = '\0';
@@ -95,7 +100,7 @@ void canTask(void *arg){
         }
 
 //#################################################### BTL ####################################################
-        if(xQueueReceive(stm.canRxQueueHxBtl, (void*)&Data_Btl_temp, 0) == pdTRUE){
+        if(xQueueReceive(stm.canRxQueueHxBtl, (void*)&Data_Btl_temp, 0) == pdTRUE && can_btl_interface == true ){
             if(Data_Btl_temp == '!'){
                 // Serial.println();
                 // Serial.println("START FLAG");
@@ -108,7 +113,7 @@ void canTask(void *arg){
 
         while(start_frame_flag_btl == 1 && end_frame_flag_btl == 0){
 
-            if(xQueueReceive(stm.canRxQueueHxBtl, (void*)&Data_Btl_temp, 0) == pdTRUE){
+            if(xQueueReceive(stm.canRxQueueHxBtl, (void*)&Data_Btl_temp, 0) == pdTRUE && can_btl_interface == true){
                 
                 if(Data_Btl_temp == '?'){
                     Data_Btl[j] = '\0';
@@ -130,16 +135,16 @@ void canTask(void *arg){
                     }
 
                     rxDataBtl_CAN.request = strings_btl[0];
-                    // Serial.print("ROCKET REQUEST: "); Serial.println(rxDataBtl_CAN.request);
+                    // Serial.print("Tank REQUEST: "); Serial.println(rxDataBtl_CAN.request);
 
                     rxDataBtl_CAN.weight = atof(strings_btl[1]);
-                    // Serial.print("ROCKET WEIGHT: "); Serial.println(rxDataBtl_CAN.weight);
+                    // Serial.print("Tank  WEIGHT: "); Serial.println(rxDataBtl_CAN.weight);
 
                     rxDataBtl_CAN.weight_raw = atoi(strings_btl[2]);
-                    // Serial.print("ROCKET WEIGHT RAW: "); Serial.println(rxDataBtl_CAN.weight_raw);
+                    // Serial.print("Tank WEIGHT RAW: "); Serial.println(rxDataBtl_CAN.weight_raw);
             
                     rxDataBtl_CAN.temperature = atof(strings_btl[3]);
-                    // Serial.print("ROCKET TEMPERATURE: "); Serial.println(rxDataBtl_CAN.temperature);
+                    // Serial.print("Tank  TEMPERATURE: "); Serial.println(rxDataBtl_CAN.temperature);
 
                     strcpy(Data_Btl, "");
                     ptr_btl = NULL;

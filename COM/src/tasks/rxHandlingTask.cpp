@@ -29,7 +29,7 @@ void rxHandlingTask(void* arg){
     // Serial.println("RX TASK");
     // ESPNOW
     if(xQueueReceive(stm.espNowRxQueueObc, (void*)&rxDataOBC_temp, 0) == pdTRUE){
-      // Serial.print("ESP NOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW: ");
+      Serial.print("ESP NOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW: ");
       Serial.println(rxDataOBC_temp.command);
       Serial.println(rxDataOBC_temp.commandValue);
 
