@@ -35,6 +35,7 @@ static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 #define MOTOR_FILL 0x01
 #define MOTOR_DEPR 0x02
 #define MOTOR_QUICK_DISCONNECT 0x03 //remember about that there are 2 of them
+#define MOTOR_QUICK_DISCONNECT_2 0x04
 
 
 #define LORA_FREQ_MHZ 915    //927
@@ -58,6 +59,7 @@ static String dataFileName_lastWeightBtl= "/lastWeightBtl_";
 #define FILL_TIME_ESP 0x15
 #define DEPR_ESP 0x20
 #define QD_ESP 0x30
+#define QD2_ESP 0x31
 #define VALVE_OPEN_ESP 0x01
 #define VALVE_CLOSE_ESP 0x00
 

@@ -63,7 +63,7 @@ public:
             perror("QD_OPEN1");
             xSemaphoreGive(stm.i2cMutex);
 
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
 
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
@@ -77,7 +77,7 @@ public:
             perror("QD_CLOSE1");
             xSemaphoreGive(stm.i2cMutex);
 
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
 
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
@@ -103,7 +103,42 @@ public:
             delay(1000);
             digitalWrite(FIRE1, LOW);
             digitalWrite(FIRE2, LOW);
-        }  
+        }  else if(rxValue =="QD2_OPEN"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, OPEN_VALVE);
+            perror("QD2_OPEN1");
+            xSemaphoreGive(stm.i2cMutex);
+
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, 7);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD2 OPEN ###########\n");
+        }
+          else if(rxValue =="QD2_CLOSE"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, CLOSE_VALVE);
+            perror("QD2_CLOSE1");
+            xSemaphoreGive(stm.i2cMutex);
+
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, 7);
+            perror("QD2_CLOSE2");
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD2 CLOSE ###########\n");
+        }
+          else if(rxValue =="QD2_STOP"){
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, 7);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD2 STOP ###########\n");
+        }
 
        
     }

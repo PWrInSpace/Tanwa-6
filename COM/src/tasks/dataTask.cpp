@@ -26,6 +26,7 @@ extern bool can_rck_interface;
 extern bool esp_now_rck_interface;
 extern bool can_btl_interface;
 extern bool esp_now_btl_interface;
+float temp_btl_temp;
 
 void dataTask(void *arg){
   Serial.println("DATA TASK");
@@ -40,36 +41,36 @@ void dataTask(void *arg){
   xSemaphoreGive(stm.i2cMutex);
 
 //TODO
-  // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  // vTaskDelay(1000 / portTICK_PERIOD_MS);
-  // Serial.println("BEFORE RCK REQUEST");
-  // Serial.println(rxDataRck.request);
-  // while(rxDataRck.request != WORK && rxDataRck.request == ASK){
-  //   // lastWeightFlag = true;
-  //   txDataRck.request = ANSWER;
-  //   txDataRck.offset = lastWeight;
-  //   // esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-  //   perror("esp_now_send RCK");
-  //   Serial.println("SENDING ANSWER RCK");
-  //   Serial.println(txDataRck.request);
-  //   Serial.println(txDataRck.offset);
-  //   Serial.println(txDataRck.command);
-  //   vTaskDelay(2000 / portTICK_PERIOD_MS);
-  // }
-  // Serial.println("BEFORE BTL REQUEST");
-  // Serial.println(rxDataBtl.request);
-  // while(rxDataBtl.request != WORK && rxDataBtl.request == ASK){
-  //     // lastWeightFlag = true;
-  //     txDataBtl.request = ANSWER;
-  //     txDataBtl.offset = lastWeightBtl;
-  //     // esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
-  //     perror("esp_now_send BTL");
-  //     Serial.println("SENDING ANSWER BTL");
-  //     Serial.println(txDataBtl.request);
-  //     Serial.println(txDataBtl.offset);
-  //     Serial.println(txDataBtl.command);
-  //     vTaskDelay(2000 / portTICK_PERIOD_MS);
-  // }
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  Serial.println("BEFORE RCK REQUEST");
+  Serial.println(rxDataRck.request);
+  while(rxDataRck.request != WORK && rxDataRck.request == ASK){
+    // lastWeightFlag = true;
+    txDataRck.request = ANSWER;
+    txDataRck.offset = lastWeight;
+    // esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+    perror("esp_now_send RCK");
+    Serial.println("SENDING ANSWER RCK");
+    Serial.println(txDataRck.request);
+    Serial.println(txDataRck.offset);
+    Serial.println(txDataRck.command);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
+  Serial.println("BEFORE BTL REQUEST");
+  Serial.println(rxDataBtl.request);
+  while(rxDataBtl.request != WORK && rxDataBtl.request == ASK){
+      // lastWeightFlag = true;
+      txDataBtl.request = ANSWER;
+      txDataBtl.offset = lastWeightBtl;
+      // esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      perror("esp_now_send BTL");
+      Serial.println("SENDING ANSWER BTL");
+      Serial.println(txDataBtl.request);
+      Serial.println(txDataBtl.offset);
+      Serial.println(txDataBtl.command);
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
   Serial.println("OUT OF LOOP");
   
 
@@ -304,9 +305,10 @@ void dataTask(void *arg){
 
     Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[1]);
 
-    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[1],450, 4096, 0, 80);
+    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[1],450, 3863, 0, 80);
     Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
+    temp_btl_temp = loraFrameTanwa.tankWeight_temp;
 
     Serial.print("TANK BLNK:  "); Serial.print(loraFrameTanwa.tankWeight_blink); 
     Serial.print("\t\t\tROCKET BLNK:  "); Serial.println(loraFrameTanwa.rocketWeight_blink);

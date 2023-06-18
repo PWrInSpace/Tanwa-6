@@ -68,6 +68,30 @@ void rxHandlingTask(void* arg){
           temp_cal = rxData.offset;
           temp_cal = temp_cal/1000;
           HxWeight.set_scale(temp_cal);
+
+          int x_temp = 0;
+          
+          temp_cal = temp_cal*1000;
+            
+          //Serial.println("temp cal factor*1000  "); Serial.println(temp_cal_factor2);
+          if(abs(temp_cal)<=99999){    
+            int tab[6];
+            if(temp_cal<0)
+              tab[5] = 1;
+            else
+              tab[5] = 0;
+            for (int i=0; i<5; i++){
+              x_temp=abs(temp_cal)/10;
+              tab[i] = abs(temp_cal) - 10*x_temp;
+              temp_cal = x_temp;
+              Serial.println("##################  CONVERTED VALUE:  #####################"); Serial.println(tab[i]);
+              EEPROM.write(i, tab[i]);
+              EEPROM.commit();
+            } 
+            Serial.println("is negative: "); Serial.println(tab[5]);
+            EEPROM.write(5, tab[5]);
+            EEPROM.commit();
+          }
           break;
         }
 

@@ -1,6 +1,7 @@
 #include "../include/tasks/tasks.h"
 
 bool once_upon_a_time = true;
+extern float temp_btl_temp;
 void buzzerTask(void *arg){
     while(1){
         if(( analogRead(IGN_TEST_CON_1) > 1000 ||
@@ -132,7 +133,10 @@ void buzzerTask(void *arg){
 
             
         }
-            
+        // else if(voltageMeasure(VOLTAGE_MEASURE) < 15.09 || temp_btl_temp > 45){ //DEBUG
+        //     ledcWriteTone(0, 1000);
+        //     ledcWrite(0, 255);
+        // } 
 
         vTaskDelay(10 / portTICK_PERIOD_MS);
 

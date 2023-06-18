@@ -103,6 +103,14 @@ void rxHandlingTask(void* arg){
           break;
         }
 
+        case QD2_ESP:{
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, rxDataOBC_temp.commandValue);
+          xSemaphoreGive(stm.i2cMutex);
+          printf("################## MOTOOOR QD2 ################\n");
+          break;
+        }
+
         case SOFT_ARM_ESP:{
           Serial.println("################ ARMING ######################");
           digitalWrite(ARM_PIN, HIGH);
@@ -440,6 +448,14 @@ void rxHandlingTask(void* arg){
             printf("MOTOOOR QD\n");
             break;
           }
+
+          case QD2_ESP:{
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, lora_payload);
+            xSemaphoreGive(stm.i2cMutex);
+            printf("################## MOTOOOR QD2 ################\n");
+            break;
+        }
 
           case SOFT_ARM_ESP:{
             digitalWrite(ARM_PIN, HIGH);

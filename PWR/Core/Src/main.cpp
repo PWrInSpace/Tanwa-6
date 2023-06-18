@@ -179,7 +179,9 @@ int main(void)
 //  HAL_Delay(50);
   ValveList.push_back({new Solenoid(Sol1Dir_GPIO_Port, Sol1Dir_Pin), ValveStateIDK});
   ValveList.push_back({new Solenoid(Sol2Dir_GPIO_Port, Sol2Dir_Pin), ValveStateIDK});
-  ValveList.push_back({new DoubleMotor(new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2)), ValveStateIDK});
+//  ValveList.push_back({new DoubleMotor(new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2)), ValveStateIDK});
+  ValveList.push_back({new Motor(M1Dir_GPIO_Port, M1Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
+  ValveList.push_back({new Motor(M2Dir_GPIO_Port, M2Dir_Pin, &htim3, TIM_CHANNEL_2), ValveStateIDK});
 
   //ValveList.push_back({new Motor(M3Dir_GPIO_Port, M3Dir_Pin, &htim1, TIM_CHANNEL_2), ValveStateIDK});
   //ValveList.push_back({new Motor(M4Dir_GPIO_Port, M4Dir_Pin, &htim1, TIM_CHANNEL_1), ValveStateIDK});
@@ -714,7 +716,7 @@ void handleRxStruct(RxStruct rxStruct){
 	if(rxStruct.CommandNum == 99){
 			HAL_NVIC_SystemReset();
 	}
-	else if(CommandNumValve > 0 && CommandNumValve < 4){ //Valve1 - Valve3
+	else if(CommandNumValve > 0 && CommandNumValve < 5){ //Valve1 - Valve4
 		if(CommandNumState == 0 || CommandNumState == 1 || CommandNumState == 3 ||  CommandNumState == 7){
 			setNewExpectedStateOfValveOnVector(ValveList, CommandNumValve - 1, (ValveState)CommandNumState);
 		}
