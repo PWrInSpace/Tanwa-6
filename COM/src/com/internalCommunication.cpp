@@ -1,4 +1,5 @@
 #include "../include/com/internalCommunication.h"
+#include "../include/config/pinout.h"
 
 template <typename rxType, typename txType>
 InternalI2C<rxType, txType>::InternalI2C(TwoWire *_wire, uint8_t _address):
@@ -14,7 +15,24 @@ bool InternalI2C<rxType, txType>::sendCommand(txType *_data){
   i2c->beginTransmission(address);
   writeStatus = i2c->write((uint8_t*) _data, sizeof(txType));
   if(i2c->endTransmission() != 0){
-    return false;
+    //TODO restart
+    ledcWriteTone(0, 5000);
+    ledcWrite(0, 255);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    ledcWrite(0, 0);
+
+    digitalWrite(RST, LOW);
+    Serial.println("################# RESET STM ####################");
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    digitalWrite(RST, HIGH);
+    vTaskDelay(400 / portTICK_PERIOD_MS);
+
+    i2c->~TwoWire();
+    i2c->begin(I2C_SDA, I2C_SCL, 100E3);
+
+
+
+    // return false;
   }
   
   return writeStatus != 0 ? true : false; 
@@ -29,11 +47,24 @@ bool InternalI2C<rxType, txType>::getData(rxType* _data){
   i2c->requestFrom(address, sizeof(rxType));
   if (i2c->available()) {
     if (!i2c->readBytes((uint8_t*)_data, sizeof(rxType))) {
-      ledcWriteTone(0, 2000);
+      
+      //TODO restart
+      ledcWriteTone(0, 5000);
       ledcWrite(0, 255);
       vTaskDelay(1000 / portTICK_PERIOD_MS);
       ledcWrite(0, 0);
-      return false;
+
+
+      digitalWrite(RST, LOW);
+      Serial.println("################# RESET STM ####################");
+      vTaskDelay(100 / portTICK_PERIOD_MS);
+      digitalWrite(RST, HIGH);
+      vTaskDelay(400 / portTICK_PERIOD_MS);
+   i2c->~TwoWire();
+    i2c->begin(I2C_SDA, I2C_SCL, 100E3);
+
+
+      // return false;
     }
   }
 
@@ -54,7 +85,25 @@ bool InternalI2C<rxType, txType>::sendCommandMotor(uint8_t _command_valve, uint8
   i2c->beginTransmission(address);
   writeStatus = i2c->write((uint8_t*) _data, sizeof(txType));
   if(i2c->endTransmission() != 0){
-    return false;
+    //TODO restart
+    ledcWriteTone(0, 5000);
+    ledcWrite(0, 255);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    ledcWrite(0, 0);
+
+
+    digitalWrite(RST, LOW);
+    Serial.println("################# RESET STM ####################");
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    digitalWrite(RST, HIGH);
+    vTaskDelay(400 / portTICK_PERIOD_MS);
+
+      i2c->~TwoWire();
+    i2c->begin(I2C_SDA, I2C_SCL, 100E3);
+
+
+
+    // return false;
   }
   
   return writeStatus != 0 ? true : false; 

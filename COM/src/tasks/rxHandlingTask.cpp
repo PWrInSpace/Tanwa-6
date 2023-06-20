@@ -98,16 +98,35 @@ void rxHandlingTask(void* arg){
         case QD_ESP:{
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, rxDataOBC_temp.commandValue);
+          perror("QD1");
           xSemaphoreGive(stm.i2cMutex);
-          printf("################## MOTOOOR QD ################\n");
+          printf("######## MOTOOOR QD ###########\n");
+
+          vTaskDelay(700 / portTICK_PERIOD_MS);
+
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
+          perror("QD1");
+          xSemaphoreGive(stm.i2cMutex);
+          printf("######## MOTOOOR QD STOP ###########\n");
           break;
         }
 
         case QD2_ESP:{
           xSemaphoreTake(stm.i2cMutex, pdTRUE);
           pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, rxDataOBC_temp.commandValue);
+          perror("QD2");
           xSemaphoreGive(stm.i2cMutex);
-          printf("################## MOTOOOR QD2 ################\n");
+
+          printf("######## MOTOOOR QD2 ###########\n");
+          vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+          xSemaphoreTake(stm.i2cMutex, pdTRUE);
+          pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, 7); // STOP QD != VALVE_STOP
+          perror("QD2");
+          xSemaphoreGive(stm.i2cMutex);
+          printf("######## MOTOOOR QD2 STOP ###########\n");
+          
           break;
         }
 
@@ -442,20 +461,40 @@ void rxHandlingTask(void* arg){
           }
           
           case QD_ESP:{
+
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, lora_payload);
+            perror("QD1");
             xSemaphoreGive(stm.i2cMutex);
-            printf("MOTOOOR QD\n");
+            printf("######## MOTOOOR QD ###########\n");
+
+            vTaskDelay(700 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, 7);
+            perror("QD1");
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD STOP ###########\n");
             break;
+            
           }
 
           case QD2_ESP:{
             xSemaphoreTake(stm.i2cMutex, pdTRUE);
             pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, lora_payload);
+            perror("QD2");
             xSemaphoreGive(stm.i2cMutex);
-            printf("################## MOTOOOR QD2 ################\n");
+            printf("######## MOTOOOR QD2 ###########\n");
+
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+            xSemaphoreTake(stm.i2cMutex, pdTRUE);
+            pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, 7); // STOP QD != VALVE_STOP
+            perror("QD2");
+            xSemaphoreGive(stm.i2cMutex);
+            printf("######## MOTOOOR QD2 STOP ###########\n");
             break;
-        }
+          }
 
           case SOFT_ARM_ESP:{
             digitalWrite(ARM_PIN, HIGH);

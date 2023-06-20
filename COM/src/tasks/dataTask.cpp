@@ -49,7 +49,7 @@ void dataTask(void *arg){
     // lastWeightFlag = true;
     txDataRck.request = ANSWER;
     txDataRck.offset = lastWeight;
-    // esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+    esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
     perror("esp_now_send RCK");
     Serial.println("SENDING ANSWER RCK");
     Serial.println(txDataRck.request);
@@ -63,7 +63,7 @@ void dataTask(void *arg){
       // lastWeightFlag = true;
       txDataBtl.request = ANSWER;
       txDataBtl.offset = lastWeightBtl;
-      // esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+      esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
       perror("esp_now_send BTL");
       Serial.println("SENDING ANSWER BTL");
       Serial.println(txDataBtl.request);
@@ -73,15 +73,26 @@ void dataTask(void *arg){
   }
   Serial.println("OUT OF LOOP");
   
+  Serial.println("################# INTERFACE RCK ESP ####################");
+  txDataRck.command = SET_HX_ESP_INTERFACE;
+  esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+  can_rck_interface = false;
+  esp_now_rck_interface = true;
+
+  Serial.println("################# INTERFACE TANK ESP ####################");
+  txDataBtl.command = SET_HX_ESP_INTERFACE;
+  esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
+  can_btl_interface = false;
+  esp_now_btl_interface = true;
 
   vTaskDelay(300 / portTICK_PERIOD_MS);
 
   ledcWriteTone(0, 5000);
   for(int i = 0; i <2; i++){
-  ledcWrite(0, 255);
-  vTaskDelay(100 / portTICK_PERIOD_MS);
-  ledcWrite(0, 0);
-  vTaskDelay(100 / portTICK_PERIOD_MS);
+    ledcWrite(0, 255);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    ledcWrite(0, 0);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
   }
 
@@ -225,21 +236,21 @@ void dataTask(void *arg){
 
     //TODO UNCOMMENT + change pin or solder correct pull up
     // if(abrtButton == 1){
-    if( analogRead(IGN_TEST_CON_1) > 1000){
+    // if( analogRead(IGN_TEST_CON_1) > 1000){
 
-      Serial.println("############## CALIBRATE RCK ################");
+    //   Serial.println("############## CALIBRATE RCK ################");
       
-      xSemaphoreTake(stm.i2cMutex, pdTRUE);
-      expander.setPinX(5,A,OUTPUT, OFF);
-      xSemaphoreGive(stm.i2cMutex);
+    //   xSemaphoreTake(stm.i2cMutex, pdTRUE);
+    //   expander.setPinX(5,A,OUTPUT, OFF);
+    //   xSemaphoreGive(stm.i2cMutex);
 
-      txDataRck.request = ASK;
-      txDataRck.offset = 4100;
-      txDataRck.command = CALIBRATE_HX;
-      esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
-      // if(digitalRead(HX1_SCL) == HIGH){
+    //   txDataRck.request = ASK;
+    //   txDataRck.offset = 4100;
+    //   txDataRck.command = CALIBRATE_HX;
+    //   esp_now_send(adressHxRck, (uint8_t*) &txDataRck, sizeof(TxData_Hx));
+    //   vTaskDelay(10000 / portTICK_PERIOD_MS);
+    // }
+    //   // if(digitalRead(HX1_SCL) == HIGH){
       if( analogRead(IGN_TEST_CON_2) > 1000){
 
       Serial.println("############ CALIBRATE BTL ##############");
@@ -249,7 +260,7 @@ void dataTask(void *arg){
       xSemaphoreGive(stm.i2cMutex);
 
       txDataBtl.request = ASK;
-      txDataBtl.offset = 15650;
+      txDataBtl.offset = 3980;
       txDataBtl.command = CALIBRATE_HX;
       esp_now_send(adressHxBtl, (uint8_t*) &txDataBtl, sizeof(TxData_Hx));
       vTaskDelay(10000 / portTICK_PERIOD_MS);
@@ -297,7 +308,7 @@ void dataTask(void *arg){
     Serial.print("BLINK: "); Serial.println(pwrData.tick);
     Serial.print("LAST COMMAND: "); Serial.println(pwrData.lastDoneCommandNum);
     Serial.print("MOTOR FILL COMMAND: "); Serial.println(pwrData.motorState[0]);
-    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[1]);
+    Serial.print("MOTOR FILL ADC: "); Serial.println(pwrData.adcValue[0]);
     Serial.print("MOTOR DEPR COMMAND: "); Serial.println(pwrData.motorState[1]);
     Serial.print("MOTOR DEPR ADC: "); Serial.println(pwrData.adcValue[2]);
     Serial.print("MOTOR STATE QUICK DISCONNECT: "); Serial.println(pwrData.motorState[2]);
@@ -305,7 +316,7 @@ void dataTask(void *arg){
 
     Serial.print("PRESSURE bit: "); Serial.println(pwrData.adcValue[1]);
 
-    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[1],450, 3863, 0, 80);
+    loraFrameTanwa.pressureSensor = map(pwrData.adcValue[1],575, 1965, 0, 100);
     Serial.print("PRESSURE in bars: "); Serial.println(loraFrameTanwa.pressureSensor);
     Serial.print("TANWA VOLTAGE: "); Serial.println(voltageMeasure(VOLTAGE_MEASURE));
     temp_btl_temp = loraFrameTanwa.tankWeight_temp;

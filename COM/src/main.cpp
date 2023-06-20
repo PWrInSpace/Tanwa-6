@@ -48,9 +48,13 @@ void setup() {
   xSemaphoreTake(stm.i2cMutex, pdTRUE);
   pwrCom.sendCommandMotor(MOTOR_FILL, CLOSE_VALVE);
   pwrCom.sendCommandMotor(MOTOR_DEPR, CLOSE_VALVE);
+  pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT, STOP_VALVE);
+  pwrCom.sendCommandMotor(MOTOR_QUICK_DISCONNECT_2, STOP_VALVE);
   xSemaphoreGive(stm.i2cMutex);
   Serial.println("######## MOTOOOR FILL CLOSED ON INIT ###########\n");
   Serial.println("######## MOTOOOR DEPR CLOSED ON INIT ###########\n");
+  Serial.println("######## MOTOOOR QD STOPPED ON INIT ###########\n");
+  Serial.println("######## MOTOOOR QD2 STOPPED ON INIT ###########\n");
 
 
 
